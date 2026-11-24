@@ -46,8 +46,9 @@ Ctrl+O → kaydet (Enter ile onayla)
 Ctrl+X → çık
 Ctrl+W → arama yap (uzun dosyada Port gibi bir satırı bulmak için)
 /etc
-Linux’ta sistem ayar dosyalarının durduğu klasör. İsmi eskiden “et cetera” (vesaire) anlamından gelir, bugün ise “editable text configuration” diye yorumlanır. Yani programların ayarlarının tutulduğu yer.
-
+Linux’ta sistem ayar dosyalarının durduğu klasör. İsmi eskiden “et cetera”
+(vesaire) anlamından gelir, bugün ise “editable text configuration” diye yorumlanır.
+Yani programların ayarlarının tutulduğu yer.
 Bazı örnekler:
 
 /etc/ssh/ → SSH ayarları
@@ -78,3 +79,103 @@ Harf	Anlamı
 -n	Numeric: isim yerine sayı göster (ssh yerine 4242 gibi)
 -l	Listening: sadece dinleyen (bağlantı bekleyen) portları göster
 -p	Process: portu hangi programın kullandığını göster
+
+
+sudo ındırme, kendı kullanıcımı sudoya ekleme
+apt update
+apt install sudo
+Debian’ın paket yöneticisi. Program kurmak, güncellemek, silmek için kullanılır
+
+Kullanıcını sudo grubuna ekle
+usermod -aG sudo haincel
+Var olan bir kullanıcının ayarlarını değiştiren komut.
+Yeni kullanıcı oluşturmaz, mevcut olanı düzenler.
+-a (append): Ekle, mevcut grupları silme.
+-G (groups): Hangi gruplara ekleneceğini belirt.
+-g (küçük): kullanıcının birincil (primary) grubunu değiştirir.
+-G (büyük): kullanıcının ek (supplementary) gruplarını belirler.
+-a olmadan sadece -G kullanırsan kullanıcı, yazdığın gruplar dışındaki tüm ek gruplardan çıkarılır.
+Bu yüzden -aG birlikte yazılır.
+Yani usermod -aG sudo haincel = “haincel kullanıcısını, diğer gruplarından çıkarmadan,
+sudo grubuna ekle”. Sudo grubundaki kullanıcılar sudo kullanma yetkisi kazanır.
+
+Kontrol:
+getentSudo ayar dosyasını (/etc/sudoers ve /etc/sudoers.d/ altındakiler) güvenli düzenlemek için
+özel bir editördür.
+
+
+sudo kural koyma 
+
+Defaults passwd_tries=3
+sudo çalıştırınca parola sorulur. Yanlış girersen en fazla 3 kez denemene izin verir, sonra komut iptal olur. Varsayılan zaten 3'tür, subject açıkça yazılmasını istediği için ekliyoruz.
+
+Defaults badpass_message="Yanlis parola, tekrar dene"
+Yanlış parola girdiğinde ekranda çıkacak mesaj. İstediğin metni yazabilirsin. Tırnak içinde olmalı.
+
+Defaults logfile="/var/log/sudo/sudo_config"
+Her sudo kullanımının (kim, ne zaman, hangi komutu çalıştırdı) yazılacağı log dosyası. Klasör (/var/log/sudo) önceden var olmalı, o yüzden mkdir -p /var/log/sudo yapıyoruz.
+
+Defaults log_input, log_output
+log_input, sudo oturumunda klavyeden yazdıklarını, log_output ise ekrana çıkan her şeyi kaydeder. Yani bir komutun sonucu bile sonradan incelenebilir.
+
+Defaults iolog_dir="/var/log/sudo"
+Yukarıdaki input/output kayıtlarının saklanacağı klasör. (logfile özet bir metin log’udur, iolog_dir ise oturumların tam kaydıdır.)
+
+Defaults requiretty
+sudo sadece gerçek bir terminalden (TTY) çalışır. Bir script, cron işi veya ele geçirilmiş bir
+web servisi terminalsiz şekilde sudo çağıramaz. Güvenlik önlemidir. Normal SSH bağlantında terminal
+olduğu için sorun çıkarmaz.
+
+Defaults secure_path="..."
+sudo ile çalışan komutların hangi klasörlerde aranacağını sabitler (/usr/sbin, /usr/bin, /bin vb.). Böylece birisi kendi PATH’ine sahte bir ls koyup sudo ile çalıştıramaz. Klasörler : ile ayrılır.
+Aslında değiştirmek zorunda değiliz. Sadece :/snap/bin eklemek Born2beroot subject’inde istenen bir şey, o yüzden önerdim.
+
+Neden ekleniyor?
+Subject, secure_path değerinin şu olmasını ister:
+
+￼
+
+/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin
+Debian’ın varsayılan satırında sonda /snap/bin yok, o yüzden “eksik olan tek parçayı ekle” dedim. Değerlendirmede (defense) bu satırın subject’tekiyle aynı olması beklenir.
+
+Neden baştan yazmak yerine sadece ekleme?
+Sorunun asıl nedeni muhtemelen klavye düzeni olduğu için: =, _, " gibi sembolleri yazarken bozuluyor. Mevcut satıra dokunmadan sadece sonuna :/snap/bin eklersen bu sembollerden sadece : ve / yazman gerekir, hata riski çok azalır.
+
+/snap/bin ne işe yarar?
+Snap paket sistemiyle kurulan programların bulunduğu klasördür. Born2beroot’ta snap kullanmasan bile subject bunu istediği için ekliyoruz. Zararı yok.
+
+
+UFW güvenlik duvarı: sadece 4242 portu açık
+SSH ayarları: port 4242, root girişi kapalı (bu aşamada ilk sorunumuza, kex_exchange_identification hatasına da döneceğiz),
+
+once apt install openssh-server
+nano /etc/ssh_sshd_config -> permitrootlogin no
+
+journalctl -u ssh -f
+
+journalctl -u ssh -f komutunu parçalarına ayıralım.
+
+journalctl
+Debian’da (systemd kullanan sistemlerde) tüm servislerin ve sistemin loglarını (kayıtlarını) okumaya yarayan komuttur. Sistem ne olup bittiğini sürekli bir günlüğe yazar, journalctl o günlüğü okur. Tek başına yazarsan her şeyi gösterir, çok uzun olur. Bu yüzden filtre kullanırız.
+
+-u ssh
+-u = unit (birim). systemd’de her servis bir “unit”tir. -u ssh demek: “sadece ssh servisinin loglarını göster.” Başka servislerin (cron, network vb.) satırları gelmez, sadece sshd’nin yazdıkları gelir: kim bağlandı, parola yanlış mı girildi, servis ne zaman başladı/durdu gibi.
+
+-f
+-f = follow (takip et). Normalde komut mevcut logları basıp biter. -f ile bittikten sonra komut kapanmaz, yeni log satırı geldikçe canlı olarak ekrana yazar. Tıpkı canlı yayın izler gibi. Windows’taki “dosyaya eklenenleri anlık göster” mantığıdır.
+
+Birlikte ne yapıyor?
+“SSH servisinin loglarını göster ve yeni bir şey olursa anında ekrana yaz.”
+
+Neden bunu kullandık?
+Sorunumuz host’tan bağlanamamaktı. Bu komutu VM’de açık bırakıp host’tan bağlanmayı denersen:
+
+Log’da yeni satır belirirse: bağlantı VM’e ulaşıyor demektir, satırın içeriği neden reddedildiğini söyler.
+Hiçbir şey belirmezse: bağlantı VM’e hiç gelmiyor, sorun VirtualBox port forwarding’de ya da host tarafında.
+
+
+
+
+
+
+
