@@ -21,15 +21,7 @@ Başka kullanıcıya da geçebilirsin
 bash
 su - kullanici_adi
 
-nano /etc/ssh/sshd_config neden nano? etc ne demek neden oyle bı dosya var
-
-just now
-￼
-
-￼
-
-￼
-
+nano /etc/ssh/sshd_config
 Claude responded: nano
 nano
 Terminalde çalışan basit bir metin düzenleyici. Grafik arayüz olmadığı için dosyayı fare ile açıp düzenleyemezsin, terminal içinde düzenleyen bir program gerekir. Seçenekler:
@@ -80,11 +72,10 @@ Harf	Anlamı
 -l	Listening: sadece dinleyen (bağlantı bekleyen) portları göster
 -p	Process: portu hangi programın kullandığını göster
 
-
 sudo ındırme, kendı kullanıcımı sudoya ekleme
 apt update
 apt install sudo
-Debian’ın paket yöneticisi. Program kurmak, güncellemek, silmek için kullanılır
+apt Debian’ın paket yöneticisi. Program kurmak, güncellemek, silmek için kullanılır
 
 Kullanıcını sudo grubuna ekle
 usermod -aG sudo haincel
@@ -100,9 +91,16 @@ Yani usermod -aG sudo haincel = “haincel kullanıcısını, diğer gruplarınd
 sudo grubuna ekle”. Sudo grubundaki kullanıcılar sudo kullanma yetkisi kazanır.
 
 Kontrol:
-getentSudo ayar dosyasını (/etc/sudoers ve /etc/sudoers.d/ altındakiler) güvenli düzenlemek için
+getent Sudo ayar dosyasını (/etc/sudoers ve /etc/sudoers.d/ altındakiler) güvenli düzenlemek için
 özel bir editördür.
+Debian'da bir kullanıcı oluşturulduğunda kendi adıyla bir primary group da otomatik oluşur (User Private Group). groups haincel çıktısında ilk sıradaki haincel o grubun kendisidir, geri kalanlar secondary gruplardır.
 
+
+visudo yazdığında açılan şey /etc/sudoers dosyasıdır. sudo'nun "kim, hangi makinede, kimin yetkisiyle, hangi komutu çalıştırabilir" kurallarını tutan ana yapılandırma dosyası budur.
+
+Neden direkt nano /etc/sudoers değil de visudo?
+
+visudo dosyayı kaydederken sözdizimini kontrol eder. Hata varsa "What now?" diye sorar ve bozuk dosyayı kaydetmene izin vermez. Çünkü sudoers bozulursa sudo çalışmaz, root'a erişimin kalmayabilir. Aynı anda iki kişinin dosyayı düzenlemesini de kilitleyerek engeller.
 
 sudo kural koyma 
 
@@ -143,6 +141,32 @@ Sorunun asıl nedeni muhtemelen klavye düzeni olduğu için: =, _, " gibi sembo
 
 /snap/bin ne işe yarar?
 Snap paket sistemiyle kurulan programların bulunduğu klasördür. Born2beroot’ta snap kullanmasan bile subject bunu istediği için ekliyoruz. Zararı yok.
+
+
+
+sudo -l (list), mevcut kullanıcının sudo ile hangi komutları çalıştırabileceğini listeler. Şifreni sorar, sonra /etc/sudoers kurallarına bakıp şunları gösterir:
+
+Hangi Defaults ayarları senin için geçerli (passwd_tries, secure_path, requiretty vb.)
+Hangi kullanıcı olarak ve hangi komutları çalıştırabilirsin. (ALL : ALL) ALL "her kullanıcı/grup adına, her komutu" demektir.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 UFW güvenlik duvarı: sadece 4242 portu açık
