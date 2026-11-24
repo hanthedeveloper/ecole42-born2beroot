@@ -1,0 +1,29 @@
+2. ISO image ne demek, neden var?
+ISO, bir kurulum diskinin (CD/DVD) dosya halidir. Gerçek bir bilgisayara Windows ya da Linux kurarken
+USB bellekten açarsın. Sanal makinede USB yok, o yüzden bu dosyayı sanal CD sürücüsüne takılmış gibi gösteririz.
+VM açılınca bu “diskten” boot eder ve Debian kurulum ekranı gelir. Kurulum bitince ISO’ya ihtiyacın kalmaz.
+
+3. “Proceed with Unattended Installation” nedir?
+Seçseydin: VirtualBox sana dil, kullanıcı adı, şifre, hostname sorar. Sonra kurulumu kendisi, hiçbir şey sormadan,
+hazır varsayılanlarla yapardı. Bölümleme otomatik olurdu, yani düz disk, şifreleme yok, LVM yok.
+Üstüne grafik arayüz de kurabilirdi. Projede bunların hepsi yasak ya da yanlış.
+
+EFI (UEFI), bilgisayarın açılırken işletim sistemini bulup başlatan firmware’in modern halidir. 
+Eski olanın adı BIOS.
+İkisi de aynı işi yapar: bilgisayarı açınca diskteki sistemi bulup yükler. Fark, diski nasıl okudukları:
+BIOS: Diskin ilk sektöründeki küçük bir boot kodunu (MBR) okur. Eski yöntemdir.
+UEFI/EFI: Diskte EFI System Partition (ESP) adında ayrı bir küçük bölüm arar, boot dosyalarını oradan yükler.
+Yeni bilgisayarların çoğu bunu kullanır.
+Neden kapalı bırakıyoruz
+EFI açılırsa Debian installer diskte ek bir ESP bölümü ister ve bölümleme düzeni konudaki örnekten farklı olur.
+Boot bölümü ve şifreli LVM kurulumunu da zorlaştırır. Kapalıyken klasik BIOS kullanılır ve konudaki örneği daha
+rahat takip edersin.
+
+SCSI3 (0,0,0) (sda) seçeceksin. Bu senin sanal diskin. Elle bölümleme yapacağın için önce diski seçip boş bir partition table oluşturman gerekiyor, sonra /boot ve şifreli bölümü onun üzerinde açacaksın.
+
+Seçmediklerin ve nedenleri
+
+Guided partitioning (bölümleme yardımcısı): Bu, kurulumun bölümleri senin yerine otomatik oluşturması demek. Bonus için /var, /srv, /tmp, /var/log gibi ayrı bölümleri kendin kurman gerekiyor, yardımcı bunları yapmıyor. Zaten Manual’i seçtiğin için bunu kullanmıyorsun.
+Configure iSCSI volumes: iSCSI, ağ üzerinden uzak bir depolama cihazına bağlanma yöntemi. Projede uzak disk yok, sadece sanal makinenin kendi diski var. Bu yüzden gereksiz.
+Configure software RAID: Birden fazla diski birleştirme yöntemi. Tek diskin var ve subject bunu istemiyor.
+Configure the Logical Volume Manager ve Configure encrypted volumes: Bunlar doğru seçenekler ama şu an değil. Önce sda üzerinde partition’ları açıp şifreli bölümü hazırlaman gerekiyor, sonra sırasıyla bunlara döneceksin. Şu an seçersen “kullanılabilir bölüm yok” gibi bir hata alırsın.
