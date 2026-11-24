@@ -41,12 +41,16 @@ to identify any mistakes that shouldn't be repeated in the future.
 Attachments
  subject.pdf
 Preliminaries
-If cheating is suspected, the evaluation stops here. Use the "Cheat" flag to report it. Take this decision calmly, wisely, and please, use this button with caution.
+If cheating is suspected, the evaluation stops here. Use the "Cheat" flag to
+report it. Take this decision calmly, wisely, and please, use this button with
+caution.
 
 Preliminary tests
 
-The defense can only occur if the student or group being evaluated is present. This way everybody learns by sharing knowledge with each other.
-If no work has been submitted (or wrong files, wrong directory, or wrong filenames), the grade is 0, and the evaluation process ends.
+The defense can only occur if the student or group being evaluated is present.
+This way everybody learns by sharing knowledge with each other.
+If no work has been submitted (or wrong files, wrong directory, or wrong
+filenames), the grade is 0, and the evaluation process ends.
 For this project, you have to clone their Git repository on their station.
 General instructions
 General instructions

@@ -1,0 +1,80 @@
+systemctl
+system control kısaltması. Debian’da servisleri (arka planda çalışan programları) yöneten araç. Bunun arkasındaki sisteme systemd denir. Bilgisayar açılırken ilk başlayan ve diğer tüm servisleri başlatıp yöneten ana süreçtir.
+
+status
+systemctl’e verilen alt komut. “Şu servisin durumunu göster” demek.
+
+su
+substitute user (bazen “switch user” diye de anılır) kısaltması. Başka bir kullanıcıya geçmeni sağlar. Kullanıcı adı yazmazsan varsayılan olarak root’a geçer.
+
+-
+Bu işaret, geçtiğin kullanıcının tam giriş ortamını yüklemesini sağlar (aslında -l ya da --login ile aynı). Yani sanki o kullanıcı olarak baştan giriş yapmışsın gibi olur.
+
+su ile su - farkı (savunmada sorulabilir)
+su	su -
+Kullanıcı	root olur	root olur
+Çalışma dizini	eski dizinde kalırsın	root’un home’una (/root) geçersin
+Ortam değişkenleri (PATH vb.)	eski kullanıcınınkiler kalır	root’unkiler yüklenir
+
+Başka kullanıcıya da geçebilirsin
+
+bash
+su - kullanici_adi
+
+nano /etc/ssh/sshd_config neden nano? etc ne demek neden oyle bı dosya var
+
+just now
+￼
+
+￼
+
+￼
+
+Claude responded: nano
+nano
+Terminalde çalışan basit bir metin düzenleyici. Grafik arayüz olmadığı için dosyayı fare ile açıp düzenleyemezsin, terminal içinde düzenleyen bir program gerekir. Seçenekler:
+
+Editör	Özellik
+nano	Basit, alttaki kısayollar ekranda yazar, yeni başlayanlar için ideal
+vim	Çok güçlü ama öğrenmesi zor, çıkmak bile başlangıçta sorun olur
+vi	Vim’in eski, sade hali
+Zorunluluk yok, vim de kullanabilirsin. nano sadece kolay olduğu için önerildi.
+
+Temel nano kısayolları (^ işareti Ctrl demek):
+
+Ctrl+O → kaydet (Enter ile onayla)
+Ctrl+X → çık
+Ctrl+W → arama yap (uzun dosyada Port gibi bir satırı bulmak için)
+/etc
+Linux’ta sistem ayar dosyalarının durduğu klasör. İsmi eskiden “et cetera” (vesaire) anlamından gelir, bugün ise “editable text configuration” diye yorumlanır. Yani programların ayarlarının tutulduğu yer.
+
+Bazı örnekler:
+
+/etc/ssh/ → SSH ayarları
+/etc/sudoers → sudo kuralları
+/etc/hostname → makinenin adı
+/etc/login.defs → parola süresi kuralları
+/etc/pam.d/ → parola kalitesi kuralları
+Bu proje boyunca sürekli /etc altında dosya düzenleyeceksin.
+
+Neden böyle bir dosya var?
+Linux’ta programların ayarları düz metin dosyalarında tutulur. Program açılırken bu dosyayı okur ve ona göre davranır. Bu yüzden ayar değiştirmek için programı yeniden derlemene gerek yok, dosyayı düzenleyip servisi yeniden başlatman yeterli.
+
+/etc/ssh/sshd_config özel olarak SSH sunucusunun (sshd) ayar dosyasıdır. İçinde port numarası, root girişine izin verilip verilmediği gibi ayarlar var. Port’u 4242 yapmak için bu dosyadaki Port satırını değiştiriyorsun.
+
+sshd_config ile ssh_config farkı
+Klasörde iki benzer dosya var, karıştırma:
+
+sshd_config → sunucu tarafı (VM’e gelen bağlantıları ayarlar). Bunu düzenliyorsun.
+ssh_config → istemci tarafı (VM’den dışarı bağlanırken kullanılır)
+Sondaki d daemon demek, yani arka planda çalışan servis anlamına gelir.
+
+ss -tunlp ne demek?
+ss socket statistics demek, makinenin hangi portları dinlediğini ve hangi bağlantıların açık olduğunu gösterir. -tunlp ise tek tek harflerin birleşimi:
+
+Harf	Anlamı
+-t	TCP bağlantıları göster
+-u	UDP bağlantıları göster
+-n	Numeric: isim yerine sayı göster (ssh yerine 4242 gibi)
+-l	Listening: sadece dinleyen (bağlantı bekleyen) portları göster
+-p	Process: portu hangi programın kullandığını göster

@@ -2,3 +2,4 @@ github psswd : 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
 
 root psswd : AngelByte7x7
 haincel psswd : angelbyte7X7
+sda5 psswd : angelbytetxt
