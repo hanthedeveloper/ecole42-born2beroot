@@ -4,7 +4,7 @@
 
 ## Description
 
-Born2beRoot is a system administration project. The goal is to set up a minimal, hardened Debian server inside a VirtualBox virtual machine, following strict rules, without any graphical interface.
+Born2beRoot is a system administration project. The goal is to set up a minimal, hardened Debian server inside a VirtualBox virtual machine, following strict rules, without any graphical interface. The project teaches how a Linux server is built, secured and maintained from scratch: partitioning, encryption, user and group management, access control, firewalling, service configuration and basic monitoring.
 
 Overview of what the server provides:
 
@@ -12,7 +12,7 @@ Overview of what the server provides:
 - Encrypted LVM partitions
 - SSH service on port 4242 with root login disabled
 - UFW firewall with only port 4242 open (IPv4 and IPv6)
-- Strong password policy (expiration, complexity, history difference)
+- Strong password policy (expiration, complexity, difference from the previous password)
 - Strict `sudo` configuration (attempt limit, custom message, I/O logging, TTY, restricted path)
 - A `monitoring.sh` bash script broadcasting system information to all terminals with `wall`, on startup and every 10 minutes, scheduled by `cron`
 
@@ -25,6 +25,7 @@ I wanted to learn:
 - **How virtual machines work.** I wanted to understand what a hypervisor really does: how it shares CPU, memory and disk between the host and the guest, how NAT networking isolates the VM, and how port forwarding connects the two. Debugging my own SSH connection problem (a host port that was already taken) taught me how ports, listening sockets and NAT fit together far better than reading about them would have.
 - **How to partition a disk manually.** Instead of using a guided installer, I wanted to design the layout myself: an encrypted partition, an LVM volume group, and separate logical volumes for `/`, `/home`, `/var`, `/srv`, `/tmp`, `/var/log` and swap. This helped me understand why separating directories matters for stability and security, and how encryption and LVM work together.
 - **How to harden a server.** I wanted to apply a coherent security baseline: a firewall exposing a single port, key services restricted (SSH without root login), a strong password policy enforced through PAM, and mandatory access control with AppArmor.
+- **How file permissions and groups work.** I wanted to understand `umask`, user private groups, and how to restrict a directory to a chosen set of users with groups (and ACLs), and to verify that it really works.
 - **How to automate and monitor a system.** Writing `monitoring.sh` and scheduling it with `cron` and `wall` taught me how to extract information from system tools with `awk` and `grep`, how the kernel exposes data through `/proc`, and how scheduled tasks interact with the boot process.
 
 ## Instructions
@@ -39,9 +40,10 @@ I wanted to learn:
 
 ### Installing / running
 
-1. Create a new VM in VirtualBox and install Debian (stable) with a minimal system (no desktop environment), using encrypted LVM partitioning.
-2. Configure the system as described in the "Project description" section.
-3. Start the VM, enter the disk encryption passphrase, then log in.
+1. Create a new VM in VirtualBox and install Debian (stable) with a minimal system (no desktop environment), using manual partitioning with encrypted LVM (see "Partitioning" below).
+2. Configure the system as described in the "Project description" section (sudo, SSH, UFW, password policy, AppArmor, cron).
+3. Place `monitoring.sh` in `/usr/local/bin/` and make it executable, then add the cron entries below to root's crontab.
+4. Start the VM, enter the disk encryption passphrase, then log in.
 
 ### Connecting by SSH
 
@@ -67,6 +69,17 @@ sudo -l
 crontab -l
 ```
 
+### User and group management
+
+```
+sudo adduser newuser                     # create a user (the password policy applies)
+sudo groupadd evaluating                 # create a group
+sudo usermod -aG evaluating newuser      # add the user to the group
+getent group evaluating                  # check group members
+sudo chage -l newuser                    # check password aging
+sudo hostnamectl set-hostname <new>      # change the hostname (then edit /etc/hosts)
+```
+
 ### Monitoring script
 
 `monitoring.sh` is stored in `/usr/local/bin/` and is run by root's crontab:
@@ -87,7 +100,14 @@ It displays: architecture and kernel, physical and virtual CPUs, RAM usage, disk
 The `signature.txt` file contains the SHA-1 of the VM's `.vdi` disk:
 
 ```
-sha1sum "born2beroot.vdi"
+sha1sum "born2beroot.vdi" > signature.txt
+```
+
+To verify a signature against a freshly computed hash (no output from `diff` means they are identical):
+
+```
+sha1sum "born2beroot.vdi" > current.txt
+diff signature.txt current.txt
 ```
 
 [TODO: paste the real signature in signature.txt only after shutting the VM down. Starting the VM again changes it.]
@@ -98,12 +118,27 @@ sha1sum "born2beroot.vdi"
 
 I chose **Debian** (latest stable, 13 "trixie").
 
-- Advantages: very stable, large documentation and community, simple to administer, AppArmor and UFW are easy to use, recommended for beginners in system administration.
-- Disadvantages: older package versions than some distributions, fewer enterprise-oriented tools than Rocky Linux out of the box.
+**Advantages**
+
+- Very stable: packages are thoroughly tested before a stable release, and a new stable version comes out roughly every two years, with about five years of support including LTS.
+- Large documentation and community, so most problems are already documented.
+- Simple to administer: `apt`, `adduser`, `ufw`, and AppArmor enabled by default make a hardened baseline quick to reach.
+- Free, independent and community-driven, with no commercial subscription model.
+- Recommended for beginners in system administration, which fits the goal of understanding each step.
+
+**Disadvantages**
+
+- Package versions in stable are older than in rolling or fast-moving distributions.
+- Fewer enterprise-oriented tools and certifications out of the box than the RHEL family.
+- Support period per release is shorter than the roughly ten years of Rocky Linux.
+
+**Why not Rocky Linux?** Rocky is an excellent choice for enterprise environments (RHEL compatibility, long lifecycle), but it uses SELinux and firewalld by default, which have a steeper learning curve. For a first server, Debian let me focus on understanding the fundamentals.
 
 ### Design choices
 
-**Partitioning.** One encrypted partition (`sda5_crypt`) holding an LVM volume group `LVMGroup`, with separate logical volumes:
+#### Partitioning
+
+One encrypted partition (`sda5_crypt`) holding an LVM volume group `LVMGroup`, with separate logical volumes:
 
 | Volume | Mount point | Size |
 |---|---|---|
@@ -115,20 +150,43 @@ I chose **Debian** (latest stable, 13 "trixie").
 | tmp | `/tmp` | 3G |
 | var--log | `/var/log` | 1.9G |
 
-`/boot` (476M) is a separate unencrypted partition. Separate volumes limit the impact of a full partition, and the encryption protects the data at rest.
+`/boot` (476M) is a separate unencrypted partition, since the bootloader must read the kernel before the encrypted volume can be unlocked.
 
-**Security policies.**
+Why this layout:
 
-- Password aging (`/etc/login.defs` and `chage`): maximum 30 days, minimum 2 days between changes, warning 7 days before expiration.
-- Password quality (`pam_pwquality` in `/etc/pam.d/common-password`): `retry=3 minlen=10 ucredit=-1 lcredit=-1 dcredit=-1 maxrepeat=3 reject_username difok=7 enforce_for_root`.
-- sudo (`/etc/sudoers`): `passwd_tries=3`, custom `badpass_message`, `logfile="/var/log/sudo/sudo_config"`, `log_input`, `log_output`, `iolog_dir="/var/log/sudo"`, `requiretty`, restricted `secure_path`.
-- SSH: port 4242, `PermitRootLogin no`.
-- Firewall: UFW active at boot, default deny incoming, only 4242/tcp allowed.
-- AppArmor loaded and enforcing at startup.
+- **Encryption** protects the data at rest: without the passphrase, the disk content is unreadable.
+- **LVM** allows logical volumes to be resized later without repartitioning the disk.
+- **Separate volumes** limit the impact of a full partition: a runaway log in `/var/log` or a full `/tmp` cannot fill `/` and crash the system. They also allow different mount options per volume.
+- `/srv` holds data served by the machine, following the Filesystem Hierarchy Standard.
 
-**User management.** `root` and `haincel`; `haincel` belongs to the `sudo` and `user42` groups. All passwords were changed after the policy was applied.
+#### Security policies
 
-**Services installed.** `ssh`, `ufw`, `sudo`, `cron`, `libpam-pwquality`, AppArmor. No graphical server is installed.
+- **Password aging** (`/etc/login.defs` and `chage`): maximum 30 days, minimum 2 days between changes, warning 7 days before expiration. `login.defs` only applies to newly created users, so existing users were updated with `chage`.
+- **Password quality** (`pam_pwquality` in `/etc/pam.d/common-password`): `retry=3 minlen=10 ucredit=-1 lcredit=-1 dcredit=-1 maxrepeat=3 reject_username difok=7 enforce_for_root`. This means at least 10 characters, with at least one uppercase letter, one lowercase letter and one digit, no more than 3 identical consecutive characters, no username inside the password, at least 7 characters different from the old password, and the same rules for root.
+- **sudo** (`/etc/sudoers`): `passwd_tries=3`, custom `badpass_message`, `logfile="/var/log/sudo/sudo_config"`, `log_input`, `log_output`, `iolog_dir="/var/log/sudo"`, `requiretty`, restricted `secure_path`.
+- **SSH**: port 4242, `PermitRootLogin no`.
+- **Firewall**: UFW active at boot, default deny incoming, only 4242/tcp allowed.
+- **Mandatory access control**: AppArmor loaded and enforcing at startup.
+
+#### User management
+
+- Users: `root` and `haincel`.
+- `haincel` belongs to the `sudo` and `user42` groups. Each user also has a private primary group (Debian's default user private group scheme).
+- All passwords were changed after the password policy was applied, so that every account complies with it.
+- Access to sudo is granted only through the `sudo` group, and all sudo activity is logged.
+
+#### Services installed
+
+| Service / package | Role |
+|---|---|
+| `ssh` (OpenSSH server) | Remote access on port 4242, root login disabled |
+| `ufw` | Firewall, only 4242/tcp allowed |
+| `sudo` | Controlled privilege escalation with logging |
+| `cron` | Scheduling of `monitoring.sh` |
+| `libpam-pwquality` | Password complexity enforcement through PAM |
+| AppArmor | Mandatory access control, active at boot |
+
+No graphical server is installed.
 
 ### Comparisons
 
@@ -137,39 +195,42 @@ I chose **Debian** (latest stable, 13 "trixie").
 | | Debian | Rocky Linux |
 |---|---|---|
 | Family | Independent, community-driven (deb / apt) | RHEL-compatible (rpm / dnf) |
-| Release model | Stable releases, long support | Enterprise-oriented, long support |
+| Release model | Stable release about every 2 years | Follows RHEL major releases |
+| Support length | About 5 years including LTS | Up to about 10 years |
 | Default MAC | AppArmor | SELinux |
 | Default firewall tool | UFW (optional front-end) | firewalld |
+| Typical use | Servers, desktops, general purpose | Enterprise servers, RHEL replacement |
 | Learning curve | Easier | Steeper |
 
 **AppArmor vs SELinux**
 
-- AppArmor is path-based: each program has a profile describing which files and capabilities it may use. It is simpler to read and configure.
-- SELinux is label-based: every file and process has a security context and policies decide which contexts can interact. It is more fine-grained and powerful, but more complex.
+- AppArmor is path-based: each program has a profile describing which files, capabilities and network access it may use. It is simpler to read and configure.
+- SELinux is label-based: every file and process has a security context and policies decide which contexts can interact. It is more fine-grained and powerful, but more complex to write and troubleshoot.
+- Both implement mandatory access control on top of the normal Unix permissions, limiting the damage if a service is compromised.
 
 **UFW vs firewalld**
 
-- UFW ("Uncomplicated Firewall") is a simple front-end for iptables/nftables with short commands (`ufw allow 4242`). Rules are static and reloaded as a whole.
-- firewalld manages rules with zones and services, and supports changes at runtime without dropping connections. It is more flexible but heavier.
+- UFW ("Uncomplicated Firewall") is a simple front-end for iptables/nftables with short commands (`ufw allow 4242`). Rules form a single ordered list, which is easy to read and enough for a single server.
+- firewalld organizes rules into zones and services, distinguishes runtime from permanent configuration, and can be changed on the fly through D-Bus. It is more flexible for complex or multi-interface setups, but heavier.
 
 **VirtualBox vs UTM**
 
-- VirtualBox: free, cross-platform (Linux, Windows, Intel macOS), easy snapshots and port forwarding, but limited support on Apple Silicon.
-- UTM: based on QEMU, works on Apple Silicon Macs (and can emulate other architectures), but is macOS/iOS only and often slower when emulating.
+- VirtualBox: free and open source, cross-platform (Linux, Windows, Intel macOS), easy snapshots and port forwarding. Recent versions have only limited Apple Silicon support, and then for ARM guests only.
+- UTM: based on QEMU, works on Apple Silicon Macs and can emulate other architectures, but is macOS/iOS only and is often slower when emulating a different architecture.
 
 ## Resources
 
 - Debian documentation: https://www.debian.org/doc/
 - Debian Administrator's Handbook: https://debian-handbook.info/
-- `man` pages: `sudoers`, `sshd_config`, `ufw`, `pam_pwquality`, `chage`, `crontab`, `wall`, `lvm`, `awk`
+- Filesystem Hierarchy Standard: https://refspecs.linuxfoundation.org/fhs.shtml
+- `man` pages: `sudoers`, `sshd_config`, `ufw`, `pam_pwquality`, `chage`, `crontab`, `wall`, `lvm`, `awk`, `umask`, `chmod`, `setfacl`, `sha1sum`, `diff`
 - Ubuntu/Debian UFW guide: https://help.ubuntu.com/community/UFW
 - AppArmor wiki: https://gitlab.com/apparmor/apparmor/-/wikis/home
 - VirtualBox manual: https://www.virtualbox.org/manual/
 
 ### Use of AI
 
-AI was used as a troubleshooting assistant, not to replace my own work:
+AI was used as a learning and troubleshooting assistant, not to replace my own work.
 
-- Troubleshooting the VirtualBox port forwarding problem (a host port already in use) and understanding how ports work.
-- Helping me understand and debug the `monitoring.sh` script and the cron scheduling aligned on boot time.
-
+- **Troubleshooting:** the VirtualBox port forwarding problem (a host port already in use).
+- **`monitoring.sh`:** understanding and debugging the script and the cron scheduling aligned on boot time.

@@ -262,6 +262,34 @@ Parola doğru girilirse sda5_crypt oluşur, LVM etkinleşir, sistem açılır.
 
 ___________________________________________________________________________________________________________________
 
+IP sadece hangi makine sorusunu cevaplar. Makinede birden fazla program çalışıyorsa veri hangisine gidecek?
+İşte orada port devreye girer.
+Hepsi birbirine nasıl bağlı?
+Servis başlar ve belirli bir porta "dinlemeye" geçer. Buna listen denir. (sshd 4242'yi dinliyor.)
+Dışarıdan biri IP:4242 adresine bağlanmak ister.
+Önce firewall bakar: "4242'ye izin var mı?" Varsa geçirir.
+Kernel gelen veriyi, o portu dinleyen programa (sshd) verir.
+Program isteği karşılar.
+
+Mac/PC'n (host)                          Sanal makine (guest)
+ssh haincel@localhost -p 4343
+        │
+        ▼
+ 127.0.0.1:4343 ──(VirtualBox port yönlendirme)──► VM:4242
+                                                      │
+                                                  UFW: 4242'ye izin var mı? Evet
+                                                      │
+                                                  sshd servisi 4242'yi dinliyor
+
+Sen ssh haincel@localhost -p 4343 yazınca olan:
+
+SSH programın kendi bilgisayarının (localhost) 4343 numaralı portuna bağlanır.
+VirtualBox bu portu dinlediği için isteği yakalar.
+İsteği VM'in 4242 portuna iletir.
+VM içinde önce UFW bakar: "4242'ye izin var mı?" Var, geçirir.
+sshd o portu dinlediği için bağlantıyı karşılar ve şifre sorar.
+___________________________________________________________________________________________________________________
+
 sudo kuralları
 
 sudo -l (list), mevcut kullanıcının sudo ile hangi komutları çalıştırabileceğini listeler.
@@ -342,6 +370,54 @@ Subject’in bunu açıkça gerekçelendirmediğini düşünüyorum, ama en olas
 çalıştırılabilir dosyalarının bulunduğu klasördür ve Ubuntu’nun varsayılan sudoers dosyasında
 secure_path bu klasörle biter. Subject’teki örnek satır büyük ihtimalle oradan alınmış. Yani sudo üzerinden snap
 ile kurulmuş programlara erişebilmek için konmuştur.
+
+nano /etc/login.defs
+/etc/login.defs, sistemin kullanıcı hesapları için varsayılan ayarlarını tuttuğu dosyadır.
+İçinde şifre yaşlandırma süreleri, yeni kullanıcı oluştururken verilecek UID aralığı, home dizini
+izinleri gibi ayarlar bulunur. useradd komutu yeni bir kullanıcı oluşturduğunda bu dosyaya bakar ve
+kullanıcıya bu varsayılanları uygular.
+dosyayı değiştirmek sadece yeni açılacak kullanıcıları etkiler.
+Var olan root ve haincel için chage komutuyla ayrıca ayar yapılır, çünkü onların süreleri hesap
+oluşurken /etc/shadow dosyasına çoktan yazılmıştır.
+passwd haincel
+passwd
+chage -l root
+chage -l haincel
+chage -l, Linux sistemlerde bir kullanıcı hesabının şifre ve hesap aging
+bilgilerini listeleyen komuttur. chage, "change age" ifadesinden gelir; -l ise "list" (listele)
+
+pam_pwquality satırı:
+password requisite pam_pwquality.so retry=3 minlen=10 ucredit=-1 lcredit=-1 dcredit=-1 maxrepeat=3
+reject_username difok=7 enforce_for_root
+password: bu satır şifre değiştirme işlemi için geçerli (PAM’in dört türünden biri: auth, account,
+session, password).
+requisite: bu modül başarısız olursa işlem hemen durur ve diğer modüllere hiç geçilmez.
+Yani zayıf şifre kesin reddedilir.
+pam_pwquality.so: çalıştırılacak modül.
+retry=3 : Şifre kurallara uymazsa kullanıcıya 3 kez yeniden deneme şansı verir.
+3 denemeden sonra passwd komutu hata ile çıkar. Amaç kullanıcıyı sonsuza kadar bekletmemek.
+minlen=10 : Şifre en az 10 karakter olmalı. Uzunluk, brute force (deneme yanılma) saldırısına karşı
+en etkili savunmadır. Her ek karakter, saldırganın denemesi gereken kombinasyon sayısını katlayarak
+artırır.
+
+ucredit=-1 : En az 1 büyük harf zorunlu.
+lcredit=-1 : En az 1 küçük harf zorunlu.
+dcredit=-1 : En az 1 rakam zorunlu.
+Temel mantık: minlen bir "puan" sistemidir
+minlen, şifrenin gerçek uzunluğu değil, hesaplanan puanı için alt sınırdır. Puan şöyle hesaplanır:
+puan = toplam uzunluk (7) + rakam bonusu (+1) = 8
+
+maxrepeat=3 : Aynı karakter art arda en fazla 3 kez geçebilir. aaaa1B kabul edilmez. Çünkü 1111 ya da aaaa gibi
+örüntüler tahmin edilmesi çok kolay şifrelerdir ve saldırganların sözlüklerinde bulunur.
+reject_username : Şifre, kullanıcı adını içeremez (düz ya da ters yazılmış hâliyle de).
+difok=7
+Yeni şifrede, eski şifrede bulunmayan en az 7 karakter olmalı. “difok” kelimesi “different” kökünden
+gelir. Bu, kullanıcının Sifre1234A şifresini Sifre1234B yapıp “değiştirdim” demesini engeller.
+Yeni şifre gerçekten farklı olmalı.
+enforce_for_root
+Varsayılan olarak pwquality kuralları root için uyarı verir ama engellemez. Yani root zayıf şifre
+seçebilir. Bu parametre kuralları root için de zorunlu kılar. Subject “root şifren de bu politikaya
+uymalı” dediği için gerekli.
 
 ___________________________________________________________________________________________________________________
 

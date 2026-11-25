@@ -155,6 +155,14 @@ EOF
 k0m04s01% ss -tulnp | grep 4242
 tcp   LISTEN 0      5           127.0.0.1:4242       0.0.0.0:*
 k0m04s01% 
+Bu satır, VM'inde şu an kurulu bir SSH bağlantısı olduğunu gösteriyor. Sütun sütun:
+Netid: tcp: TCP bağlantısı.
+State: ESTAB: Established, yani bağlantı kurulmuş ve aktif. (Daha önce gördüğün LISTEN
+"bekliyorum" demekti, ESTAB "biri bağlandı, konuşuluyor" demek.)
+Recv-Q / Send-Q: 0 / 0: Bekleyen veri yok, bağlantı sakin.
+Local Address:Port: 10.0.2.15:4242: Bağlantının VM tarafı. VM'in IP'si ve SSH portu.
+Peer Address:Port: 10.0.2.2:44308: Bağlanan taraf. 10.0.2.2 VirtualBox NAT'te host makinenin
+(kendi bilgisayarının) VM'den görünen adresi. 44308 ise host tarafının rastgele seçtiği geçici port.
 
 grafical user interface yok
 systemctl get-default

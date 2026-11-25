@@ -1,0 +1,461 @@
+A simple "diff" should allow you to compare the two signatures.
+1. Hash'i terminalden alıp bir dosyaya yaz:
+bash
+sha1sum disk.vdi > benim_hash.txt
+2. İki dosyayı karşılaştır:
+bash
+diff signature.txt benim_hash.txt
+Çıktı yoksa: Dosyalar birebir aynı, hash eşleşti.
+Çıktı varsa: Fark var. < ilk dosyadaki, > ikinci dosyadaki satırdır.
+
+1. Debian vs Rocky Linux
+Linux dağıtımı nedir? Linux aslında sadece çekirdektir (kernel). Üstüne paket yöneticisi,
+araçlar ve ayarlar eklenip hazır bir işletim sistemi yapılırsa buna dağıtım denir.
+Linux'u geliştiren kişiler (Linus Torvalds ve çekirdek geliştiricileri) sadece kernel yazar.
+Kernel tek başına bir işletim sistemi değildir. Üstüne mkdir, ls, bir kabuk (bash), bir paket
+yöneticisi, bir kurulum programı, bir açılış yöneticisi gibi yüzlerce şey gerekir. Bunlar farklı
+kişi ve projelerin yazdığı bağımsız yazılımlardır.
+Birisi bunları toplayıp uyumlu çalıştıracak, test edecek, güncellemelerini takip edecek ve sana
+kurulabilir halde verecek. O işi yapan projeye dağıtım denir.
+Debian ve Rocky ikisi de sunucu için kullanılan dağıtımlardır.
+Debian
+Topluluk tarafından geliştirilir, bir şirkete bağlı değildir.
+Paket yöneticisi apt, paket formatı .deb.
+Çok kararlıdır (stable). Debian'da bir programın sürümü 2.4 ise, stable'ın ömrü boyunca 2.4 kalır
+(içinde yamalar olur ama özellik eklenmez)
+Ubuntu da Debian'dan türemiştir.
+Parça	Ne işe yarar	Debian'daki karşılığı
+Kernel	Donanımla konuşur, bellek, disk, ağ ve süreçleri yönetir	Linux kernel(Debian bunu seçer ve kendi ayarlarıyla derler)
+Bootloader	Bilgisayar açılınca kernel'i yükler	GRUB
+Init sistemi	Açılışta servisleri başlatır, systemctl ile yönetilir	systemd
+Temel araçlar	Günlük komutlar: mkdir, ls, cp, cat, grep	GNU coreutils ve diğerleri
+Kabuk (shell)	Komut yazdığın program	bash
+C kütüphanesi	Hemen her programın ihtiyaç duyduğu temel kod parçası	glibc
+Paket yöneticisi	Program kurar, günceller, siler	apt, dpkg
+Depo (repository)	Debian'ın sunucularında duran, hazır derlenmiş on binlerce paket	deb.debian.org
+Kurulum programı	Disk bölme, şifreleme, kullanıcı oluşturma adımları	Debian Installer
+Debian ekibi pratikte ne yapar?
+Bağımsız projelerin (kernel, bash, OpenSSH, apache...) kaynak kodunu alır.
+Kendi sürümüne uyacak şekilde derler ve paket haline getirir (.deb).
+Birlikte uyumlu çalışıp çalışmadığını test eder.
+Paketleri depoya koyar ve dijital imzalar.
+Sürüm yayınlandıktan sonra güvenlik yamalarını dağıtır.
+Rocky Linux
+Red Hat Enterprise Linux (RHEL) ile uyumlu, ücretsiz bir dağıtımdır.
+Paket yöneticisi dnf, paket formatı .rpm.
+Şirketlerde kullanılsın diye yapılmıştır, destek süresi çok uzundur (yaklaşık 10 yıl).
+Güvenlik için SELinux ve firewalld ile gelir.
+Fark: Debian daha kolay öğrenilir ve toplulukla büyür. Rocky kurumsal dünyaya yöneliktir,
+daha uzun destek verir ama güvenlik araçları daha karmaşıktır.
+RHEL = Red Hat Enterprise Linux. Red Hat adlı şirketin (şu an IBM'e ait) ürünü olan, ücretli destekli
+kurumsal bir Linux dağıtımıdır. Şirketler abonelik öder, karşılığında teknik destek ve uzun süreli yama
+alır. Bankalar, büyük firmalar bunu yaygın kullanır.
+RHEL'in kaynak kodu açıktır. Bu yüzden başkaları o kodu alıp kendi ücretsiz sürümlerini yapabilir. Rocky
+Linux da bunlardan biridir: RHEL ile "birebir uyumlu" ama ücretsiz ve desteği topluluktan gelir.
+Uyumlu demek: RHEL için yazılmış bir program Rocky'de de çalışır.
+Debian ve Rocky aynı kernel'i ve aynı programları kullanabilir. Farkları: kimin hangi sürümü seçtiği,
+hangi paket sistemini kullandığı, hangi güvenlik aracını varsayılan yaptığı, ne kadar süre destek verdiği.
+
+2. AppArmor vs SELinux
+Ortak fikir: Normal Linux izinleri (chmod, chown) "bu dosyaya kim erişebilir" diye bakar.
+Ama bir program hacklenirse, o programın sahibi hangi izne sahipse saldırgan da onu kullanır.
+Bu araçlar programların kendisini de sınırlar: "web sunucusu sadece web klasörüne dokunabilir,
+/etc/shadow'u okuyamaz." Buna MAC (Mandatory Access Control) denir.
+AppArmor
+Her programa bir profil verilir: hangi dosya yollarına erişebilir, hangi ağ işlemlerini yapabilir.
+Yol (path) üzerinden çalışır: "/var/www/ altına yazabilir" gibi.
+Okuması ve yazması kolaydır. Debian'da varsayılan olarak gelir.
+AppArmor
+Her program için bir profil dosyası yazılır (/etc/apparmor.d/ içinde).
+Profil, dosya yollarına göre yazılır. Örnek mantık:
+"Bu program /var/www/ altını okuyabilir."
+"/etc/shadow'a erişemez."
+İki çalışma modu vardır:
+enforce: Kuralı çiğneyeni engeller ve kaydeder.
+complain: Engellemez, sadece "şunu yapmaya çalıştı" diye log yazar (profil yazarken test için).
+Profili olmayan programlar kısıtlanmaz.
+Kontrol komutu: aa-status
+Debian, Ubuntu, SUSE'de kullanılır.
+SELinux
+Her dosyaya ve sürece bir etiket (context) yapıştırılır. Kurallar "şu etiketli süreç, şu etiketli
+dosyaya şunu yapabilir" der.
+Dosya yolu değişse bile etiket aynı kalır, o yüzden çok detaylı ve güçlüdür.
+Daha zordur, hata ayıklaması zahmetlidir. Rocky/RHEL'de varsayılandır.
+Fark: AppArmor yol ile çalışır, basittir. SELinux etiket ile çalışır, daha güçlü ama daha karmaşıktır.
+SELinux
+NSA (ABD Ulusal Güvenlik Ajansı) tarafından geliştirildi.
+Sistemdeki her şeye etiket yapıştırılır: dosyalar, süreçler, hatta ağ portları.
+Örnek: web sunucusu süreci httpd_t, web dosyaları httpd_sys_content_t etiketi taşır.
+Kural şöyledir: "httpd_t etiketli süreç, httpd_sys_content_t etiketli dosyayı okuyabilir."
+Etiketi ls -Z ile görürsün.
+Üç modu vardır: enforcing (engeller), permissive (sadece kaydeder), disabled (kapalı).
+Kontrol komutları: getenforce, sestatus
+RHEL, Rocky, Fedora'da varsayılandır.
+3. MAC tam olarak nedir?
+
+Örneksiz, teknik tanım:
+
+Erişim kontrolü, bir öznenin (genelde bir süreç, yani çalışan program) bir nesne (dosya, klasör, ağ portu, başka süreç) üzerinde bir işlem (okuma, yazma, çalıştırma, bağlanma) yapmasına izin verilip verilmeyeceğine karar verme mekanizmasıdır. Bu kararı kernel verir.
+
+İki tür vardır:
+
+DAC (Discretionary Access Control, isteğe bağlı erişim kontrolü)
+
+Karar, sürecin hangi kullanıcı (UID/GID) olarak çalıştığına bakılarak verilir.
+İzinleri nesnenin sahibi belirler (chmod, chown). Sahibi isterse izni değiştirebilir.
+Bir süreç, onu çalıştıran kullanıcının bütün haklarını taşır. Süreç ile kullanıcı arasında ayrım yoktur.
+root (UID 0) bu kontrolün çoğunu atlar.
+
+MAC (Mandatory Access Control, zorunlu erişim kontrolü)
+
+Karar, sistem genelinde yönetici tarafından yazılmış bir politikaya göre verilir.
+Kurallar özne - nesne - işlem biçimindedir: "şu özne, şu nesne üzerinde şu işlemi yapabilir." Politikada izin verilmeyen işlem yasaktır.
+Nesnenin sahibi ya da sürecin kendisi bu kuralları değiştiremez. "Zorunlu" kelimesi buradan gelir.
+Süreç hangi kullanıcıyla çalışırsa çalışsın (root dahil), politika onu sınırlar.
+
+İkisi birlikte nasıl çalışır?
+
+Linux'ta bir süreç bir dosyayı açmak istediğinde kernel önce DAC kontrolünü yapar (izin bitleri). DAC izin verirse, kernel MAC modülüne sorar. İşlem ancak ikisi de izin verirse gerçekleşir. Biri bile reddederse işlem reddedilir. MAC, DAC'ın yerine geçmez, üstüne eklenen ikinci bir kapıdır.
+
+Teknik olarak nasıl uygulanır? Linux kernel'inde LSM (Linux Security Modules) adlı bir altyapı vardır. Kernel, kritik noktalarda (dosya açma, ağ bağlantısı kurma, program çalıştırma) bu modüllere "izin veriyor musun?" diye sorar. AppArmor ve SELinux bu altyapıya takılan iki farklı MAC modülüdür. İkisinin farkı, politikayı nasıl ifade ettikleridir:
+
+AppArmor: Nesneyi dosya yolu ile tanımlar (/etc/shadow gibi).
+SELinux: Nesneyi ve özneyi etiketle tanımlar. Her dosyanın, sürecin, portun üstünde bir etiket (security context) saklanır ve kurallar etiketler arasında yazılır.
+
+3. UFW vs firewalld
+Firewall (güvenlik duvarı) nedir? Sunucuya gelen ve giden ağ trafiğini kurallarla filtreler.
+Örneğin "sadece 4242 numaralı porta izin ver, geri kalanı reddet." Bu projede sadece SSH portu
+açık kalıyor.
+UFW (Uncomplicated Firewall)
+Adı gibi "karmaşık olmayan" firewall'dur. Aslında altta çalışan iptables/nftables için basit bir
+arayüzdür.
+Komutlar kısadır: ufw allow 4242, ufw status.
+Debian/Ubuntu tarafında yaygındır. Tek bir sunucu için yeterlidir.
+firewalld
+Kuralları zone mantığıyla yönetir: "dışarıdan gelen trafik", "iç ağ", "güvenilir ağ" gibi.
+Servis adıyla izin verebilirsin (--add-service=ssh). Çalışırken kural değişikliği yapılabilir ve
+kalıcı/geçici ayrımı vardır.
+RHEL/Rocky'de varsayılandır. Karmaşık ağlar için esnektir ama daha ağırdır.
+Fark: UFW basit ve düz kural listesidir. firewalld zone mantığıyla daha esnek ve kurumsaldır.
+4. VirtualBox vs UTM
+Sanal makine (VM) nedir? Gerçek bilgisayarının içinde çalışan sanal bir bilgisayardır. Kendi diski,
+RAM'i ve işletim sistemi vardır. Bunu yöneten programa hypervisor denir. Born2beRoot'u kendi
+bilgisayarını bozmadan kurmak için VM kullanıyorsun.
+VirtualBox
+Ücretsiz, Windows, Linux ve Intel Mac'te çalışır.
+Snapshot almak, port yönlendirme yapmak kolaydır. 42'de genelde bununla yapılır.
+Apple Silicon (M1/M2/M3) Mac'lerde desteği sınırlıdır.
+UTM
+QEMU tabanlıdır ve özellikle Apple Silicon Mac'ler için kullanılır.
+Farklı işlemci mimarilerini taklit edebilir, ama bu durumda yavaş çalışır.
+Sadece macOS ve iOS'ta vardır.
+Fark: VirtualBox her yerde çalışır ve Intel/Windows/Linux için ideal.
+UTM ise Apple Silicon Mac'ler için çözümdür ama sadece Apple tarafında vardır.
+QEMU açık kaynaklı bir sanallaştırma ve emülasyon aracıdır. İki ayrı işi yapabilir:
+Emülasyon: Başka bir işlemci mimarisini yazılımla taklit eder. Örneğin ARM işlemcili bir Mac'te x86
+işlemciymiş gibi Linux çalıştırabilirsin. Her komut çevrildiği için yavaştır.
+Sanallaştırma: Misafir sistem gerçek işlemciyi doğrudan kullanır (aynı mimari). Donanım desteğiyle
+hızlıdır.
+QEMU çok güçlüdür ama komut satırı ağırlıklıdır, ayarları zordur. UTM, QEMU'nun (ve Apple'ın kendi
+sanallaştırma altyapısının) üstüne yapılmış, Mac'e uygun, kolay bir grafik arayüzdür.
+VirtualBox	UTM
+Çalışma motoru	Kendi hypervisor'ü	QEMU / Apple Virtualization
+Hangi sistemlerde	Windows, Linux, Intel Mac	Sadece macOS ve iOS
+Apple Silicon (M1/M2/M3)	Sınırlı destek, sadece ARM misafir	Tam destek, ARM Debian hızlı çalışır
+Emülasyon	Yok (host ile aynı mimari)	Var (farklı mimariyi taklit eder, yavaş)
+Fiyat	Ücretsiz	GitHub'da ücretsiz, App Store'da ücretli (geliştiriciyi desteklemek için)
+Olgunluk	Eski, çok yaygın, snapshot ve port yönlendirme kolay	Daha yeni, daha az seçenek
+
+"Neden Rocky seçmedin?" için kendi cümlelerinle kuracağın cevap iskeleti
+"İlk sunucum olduğu için Debian'ın dokümantasyonunun geniş olması işime geldi."
+"Rocky'nin SELinux'u daha karmaşık, ben önce temel güvenlik kavramlarını öğrenmek istedim.
+AppArmor ile başlamak daha mantıklıydı."
+"Subject da yeni başlayanlara Debian'ı öneriyor."
+
+Paket yöneticisi bu paketleri senin yerine yönetir. Sen internetten program indirip elle kurmak yerine
+tek komut yazarsın:
+
+bash
+sudo apt install ufw
+apt ne yapar:
+Debian'ın depolarına (repository, sunucu) bakar.
+ufw paketini ve ihtiyaç duyduğu diğer paketleri bulur.
+Hepsini indirir ve kurar.
+Sonra güncelleme, silme gibi işleri de yönetir.
+Önemli komutlar:
+bash
+apt update        # paket listesini yenile (henüz kurmaz)
+apt upgrade       # kurulu paketleri güncelle
+apt install X     # kur
+apt remove X      # sil
+apt search X      # ara
+
+
+Project overview
+
+The student being evaluated should explain to you simply:
+How a virtual machine works.
+Their choice of operating system.
+The basic differences between Rocky and Debian.
+The purpose of virtual machines.
+If the evaluated student chose Debian: the difference between aptitude and apt, and what APPArmor is.
+1. Sanal makine (VM) nasıl çalışır?
+
+Temel fikir: Fiziksel bilgisayarın CPU'su, RAM'i, diski ve ağ kartı yazılımla bölünür ve her sanal makineye "kendine ait bir bilgisayar" gibi sunulur. Bunu yapan yazılıma hypervisor (sanallaştırma yöneticisi) denir.
+
+Host: Gerçek bilgisayar ve üzerindeki işletim sistemi.
+Guest: Sanal makine ve içindeki işletim sistemi (senin Debian'ın).
+
+Hypervisor türleri
+
+Tür	Nerede çalışır	Örnek
+Tip 1 (bare-metal)	Doğrudan donanımın üstünde, host işletim sistemi yok	VMware ESXi, Xen, KVM
+Tip 2 (hosted)	Normal bir programdır, host işletim sisteminin üstünde çalışır	VirtualBox, VMware Workstation, UTM
+
+VirtualBox Tip 2'dir: Windows/Mac/Linux üzerinde bir uygulama olarak çalışır.
+
+Hypervisor kaynakları nasıl paylaştırır?
+
+CPU: Guest'in komutları çoğunlukla gerçek işlemcide doğrudan çalışır. Bunu işlemcinin donanım sanallaştırma desteği (Intel VT-x, AMD AMD-V) mümkün kılar. Guest "ayrıcalıklı" bir işlem yapmaya çalışırsa (örneğin donanıma doğrudan erişmek) işlemci kontrolü hypervisor'a verir, hypervisor bunu güvenli şekilde taklit eder. Sanal CPU sayısını sen belirlersin (README'deki "number of CPUs").
+RAM: Host RAM'inden belirlediğin miktar guest'e ayrılır. Guest bunu kendi fiziksel RAM'i sanır. Hypervisor, guest'in "fiziksel" adreslerini gerçek RAM adreslerine çevirir (nested paging, donanım destekli). Bir guest başka bir guest'in veya host'un belleğini göremez.
+Disk: Guest'in diski aslında host üzerinde tek bir dosyadır (senin .vdi dosyan). Hypervisor bu dosyayı guest'e gerçek bir disk gibi gösterir. Guest bu diski bölümlere ayırır, şifreler, LVM kurar. Host için bunların hiçbiri anlamlı değildir, sadece büyük bir dosya görür. Bu yüzden .vdi'nin hash'ini alabiliyoruz: VM kapalıyken dosya sabit, açılınca değişir.
+Ağ ve diğer aygıtlar: Guest'e sanal bir ağ kartı, sanal ekran, sanal klavye gibi taklit edilmiş donanım sunulur.
+
+NAT ağ modu (senin kullandığın): VirtualBox, VM ile dış dünya arasında küçük bir sanal router gibi davranır. VM'e özel bir IP verir (genelde 10.0.2.15), internete çıkarken kendi adres çevirisini yapar. Dışarıdan VM'e doğrudan erişim olmaz, bu yüzden port yönlendirme (host 4343 → guest 4242) gerekir.
+
+İzolasyon: Guest, host'tan ve diğer VM'lerden yalıtılmıştır. Guest içinde rm -rf / çalıştırsan bile sadece .vdi dosyasının içi zarar görür, host etkilenmez.
+
+Değerlendirmede söyleyebileceğin özet: "Sanal makine, hypervisor sayesinde fiziksel bilgisayarın CPU, RAM, disk ve ağını bölüştürüp, kendi işletim sistemi olan yalıtılmış bir bilgisayar gibi çalışmasını sağlar. Benim VM'imin diski host'ta tek bir .vdi dosyasıdır."
+
+3. Rocky ve Debian arasındaki temel farklar
+Konu	Debian	Rocky Linux
+Köken	Bağımsız, topluluk projesi (1993)	RHEL'in ücretsiz, binary uyumlu klonu
+Paket formatı / yönetici	.deb / apt, dpkg	.rpm / dnf, rpm
+MAC	AppArmor	SELinux
+Firewall	UFW (sonradan kurulur, isteğe bağlı)	firewalld (varsayılan)
+Sürüm modeli	Stable yaklaşık 2 yılda bir	RHEL ana sürümünü takip eder
+Destek süresi	~5 yıl (3 yıl + 2 yıl LTS)	~10 yıl
+Kurulum programı	Debian Installer	Anaconda
+Varsayılan dosya sistemi	ext4	XFS
+sudo yetkili grup	sudo	wheel
+SSH servisi adı	ssh (sshd de çalışır)	sshd
+Hedef kitle	Genel amaçlı: sunucu, masaüstü	Kurumsal sunucu
+Güvenlik yaması	Debian Security Team	RHEL kaynağını takip eder
+
+
+4. Sanal makinelerin amacı
+İzolasyon ve güvenlik: Riskli işlemleri (sistem kurmak, güvenlik ayarları, şüpheli yazılım denemek) host'u bozmadan yapabilirsin. Born2beRoot'ta yanlış bir sudoers ya da firewall ayarı VM'i kilitler ama bilgisayarına bir şey olmaz.
+Aynı donanımda birden fazla sistem: Bir fiziksel sunucuda onlarca bağımsız sunucu çalıştırılabilir. Donanımdan tasarruf sağlanır.
+Test ve geliştirme: Farklı işletim sistemlerinde yazılım denenebilir, üretim ortamının kopyası kurulabilir.
+Snapshot ve yedekleme: VM'in durumu kaydedilip geri dönülebilir. Disk tek dosya olduğu için taşımak ve kopyalamak kolaydır.
+Bulut altyapısı: AWS, Azure, Google Cloud gibi bulut sağlayıcılar sunucuları sanal makine olarak kiralar.
+Tekrarlanabilirlik: Aynı ortam başka bir makinede aynı şekilde çalıştırılabilir.
+
+Bu projede amaç: Gerçek bir sunucu ayarlama deneyimini, kendi bilgisayarına zarar verme riski olmadan yaşamak.
+
+apt	 vs aptitude
+Arayüz	Sadece komut satırı	Komut satırı ve etkileşimli metin arayüzü (aptitude yazınca menülü ekran açılır)
+Kullanım	Basit, hızlı, günlük işler için. Debian'da standart	Daha gelişmiş özellikler
+Çakışma/bağımlılık çözümü	Bir sorun çıkarsa genellikle hata verip durur	Gelişmiş çözücüsü vardır: alternatif çözüm önerileri sunar, sen seçersin
+Paket silerken	apt remove bağımlılıkları bırakır, apt autoremove gerekir	Gereksiz kalan otomatik kurulmuş bağımlılıkları da temizlemeye eğilimlidir
+Arama	Basit (apt search)	Güçlü arama desenleri
+"Bu paket neden kurulu?"	Doğrudan yok	aptitude why paket ile gösterir
+Varsayılan kurulum	Hep kurulu gelir	Minimal Debian'da genelde kurulu değildir, apt install aptitude ile kurulur
+6. AppArmor nedir?
+
+AppArmor, Linux kernel'inin güvenlik modülü (LSM) olarak çalışan bir MAC (Zorunlu Erişim Kontrolü) sistemidir. Her programın ne yapabileceğini bir profil ile sınırlar.
+
+Neden gerekli? Normal Linux izinleri (DAC) sadece "hangi kullanıcı" sorusuna bakar. Bir servis hacklenirse saldırgan o servisin kullanıcısının bütün haklarını kullanır. AppArmor, programı kullanıcıdan bağımsız olarak sınırlar: web sunucusu profilinde sadece /var/www okuyabiliyorsa, saldırgan ele geçirse bile /etc/shadow'u okuyamaz. Zarar sınırlı kalır.
+
+Nasıl çalışır?
+
+Profiller /etc/apparmor.d/ içinde durur.
+Profil, programın erişebileceği dosya yollarını, kullanabileceği yetenekleri (capabilities) ve ağ erişimini tanımlar. Profilde izin verilmeyen işlem engellenir.
+İki ana mod:
+enforce: Kural ihlalini engeller ve loglar.
+complain: Engellemez, sadece loglar (profil geliştirirken kullanılır).
+Profili olmayan programlar kısıtlanmaz (unconfined).
+Kernel her dosya açma, ağ bağlantısı gibi işlemde önce DAC'a, sonra AppArmor'a bakar. İkisi de izin verirse işlem olur.
+
+VM: Her sanal makinenin kendi kernel'i vardır. Sanal donanım üstünde komple bir işletim sistemi çalışır. Senin Born2beRoot VM'in kendi Linux kernel'ini, kendi bootloader'ını, kendi disk bölümlerini çalıştırır.
+
+Container: Ayrı bir kernel yoktur. Container'daki programlar host'un kernel'ini paylaşır. Kernel, bu programları iki özellikle birbirinden ayırır:
+
+Namespace: Süreç, container'a "sadece kendi süreçlerini, kendi ağını, kendi dosya sistemini görüyorum" dedirtir. Yalıtım görünüm düzeyindedir.
+cgroups: Container'ın kullanabileceği CPU ve RAM miktarını sınırlar.
+
+Container, aslında özel kısıtlanmış bir süreçtir, bir işletim sistemi değildir.
+
+Ensure that the machine does not have a graphical environment at launch.
+Display manager yok: systemctl status gdm3 veya systemctl status lightdm komutlarında "could not be
+found" çıkmalı.
+
+Display manager, açılışta sana grafiksel bir giriş ekranı gösteren ve giriş yaptıktan sonra masaüstü
+oturumunu başlatan programdır.
+gdm3: GNOME masaüstünün display manager'ı. Debian'da GNOME kurulunca genelde bununla gelir.
+lightdm: Hafif, masaüstünden bağımsız bir display manager. XFCE, MATE gibi masaüstleriyle sık kullanılır.
+Check that the UFW service is started with the help of the student being evaluated : systemctl status ufw verbose bı de ufw status
+Check that the SSH service is started with the help of the student being evaluated. : sudo ss -tunlp 
+Check that the chosen operating system is Debian or Rocky with the help of the student being evaluated : os-release dosyası etc altında
+
+First, create a new user.
+Assign it a password of your choice, respecting the subject rules. The learner being evaluated must now
+explain to you how they were able to set up the rules requested in the subject on their virtual machine.
+/etc/login.defs
+/etc/pam.d/common-password
+
+The subject imposes strict rules for sudo. The learner being evaluated must first explain the value
+and operation of sudo using examples of their choice.
+Sudo nedir? "Superuser do" demek. Normal bir kullanıcının, tek bir komutu geçici olarak root yetkisiyle çalıştırmasını sağlar. Root'a tamamen geçmek yerine sadece o komut için yetki alırsın.
+
+Neden değerli?
+
+En az yetki ilkesi: Sürekli root olarak çalışırsan yanlış yazılmış bir rm -rf bütün sistemi silebilir. Sudo ile normal kullanıcıyken çalışırsın, yetkiyi sadece gerektiğinde alırsın.
+Root parolasını paylaşmak gerekmez: Herkes kendi parolasıyla sudo kullanır. Birinin yetkisini almak için root parolasını değiştirmek gerekmez, sadece o kişiyi sudo grubundan çıkarırsın.
+Hesap verebilirlik: Her sudo komutu loglanır. Kim, ne zaman, hangi komutu çalıştırdı belli olur. Born2beRoot'ta bu loglar /var/log/sudo/ altında, hem girdi hem çıktı olarak tutuluyor.
+İnce ayar: /etc/sudoers ve /etc/sudoers.d/ ile kimin hangi komutu çalıştırabileceğini sınırlayabilirsin. Mesela bir kullanıcıya sadece servis yeniden başlatma yetkisi verebilirsin.
+
+Nasıl çalışır? sudo komut yazdığında sudo önce sudoers dosyalarına bakıp bu kullanıcının bu komutu çalıştırmaya yetkili olup olmadığını kontrol eder. Yetkiliyse kullanıcının kendi parolasını ister (root'unkini değil). Doğruysa komutu root olarak çalıştırır ve olayı loglar. Parola kısa süre hatırlanır, her komutta tekrar sorulmaz.
+
+
+The student being evaluated should provide a basic explanation of what UFW (or Firewalld) is and its value.
+UFW nedir?
+
+UFW (Uncomplicated Firewall), Debian/Ubuntu'da güvenlik duvarını yönetmek için kullanılan basit bir komut satırı aracıdır. Güvenlik duvarının kendisi değil, onu yöneten bir ön yüzdür. Asıl filtrelemeyi kernel'deki netfilter yapar. Bunu eskiden iptables, şimdi çoğunlukla nftables ile yönetiriz, ama bu komutlar karmaşık ve uzundur. UFW aynı işi ufw allow 4242 gibi tek satırla yapmamı sağlar.
+
+Güvenlik duvarı ne yapar? Makineye gelen ve çıkan ağ trafiğini kurallara göre inceler. Her bağlantı için "geçsin mi, engellensin mi?" kararını verir. Bir bina girişindeki güvenlik görevlisi gibi düşünebilirsin: listede olmayan kapıdan kimseyi içeri almaz.
+
+Değeri nedir?
+Saldırı yüzeyini küçültür. Bir servis yanlışlıkla ya da bilmeden bir port dinliyor olsa bile, o port için kural yoksa dışarıdan erişilemez. Sadece bilerek açtığım portlar erişilebilir olur.
+Varsayılan olarak reddet ilkesi. UFW'nin varsayılanı gelen trafiği reddetmek, giden trafiğe izin vermektir (deny incoming, allow outgoing). Yani ben açıkça izin vermedikçe dışarıdan kimse bağlanamaz.
+Kolay yönetim. Kurallar okunabilir, ekleme ve silme basittir, IPv4 ve IPv6 için kuralları birlikte oluşturur.
+Servis bazlı kontrol. İstersem bir portu herkese, istersem sadece belli bir IP'ye açabilirim.
+Örnekler
+Örnek 1: Born2beRoot'ta sadece SSH için 4242 portunu açtım. Biri 22 portundan SSH denerse bağlantı reddedilir, çünkü orada ne servis var ne de izin veren kural.
+Örnek 2: Bonusta lighttpd kurunca 80 numaralı portu açmam gerekir (sudo ufw allow 80). Kural olmazsa web sitesi çalışıyor olsa bile dışarıdan açılmaz.
+Örnek 3: Bir kuralı gereksiz buldum, silerim: sudo ufw delete allow 80. Servis çalışmaya devam eder ama dış erişim kapanır.
+Born2beRoot'ta gösterebileceğin komutlar
+bash
+sudo ufw status verbose
+sudo ufw status numbered
+sudo systemctl status ufw
+status verbose çıktısında Status: active, Default: deny (incoming), allow (outgoing) ve 4242/tcp ALLOW IN Anywhere (ayrıca 4242/tcp (v6)) görünmeli.
+systemctl status ufw çıktısında active ve enabled olmalı. Bu, makine yeniden başlayınca da güvenlik duvarının otomatik açıldığını gösterir.
+Canlı kural ekleme/silme
+
+Değerlendirici yeni bir kural eklemeni isteyebilir:
+
+bash
+sudo ufw allow 8080
+sudo ufw status numbered
+sudo ufw delete <numara>
+
+Silerken IPv4 ve IPv6 satırları ayrı numaralanır, ikisini de silmeyi unutma. Alternatif olarak sudo ufw delete allow 8080 hepsini tek seferde siler.
+iptables, Linux kernel'indeki güvenlik duvarını (netfilter) doğrudan yönetmek için kullanılan komut satırı aracıdır. UFW'nin arkada kullandığı asıl araç budur.
+
+
+he student being evaluated must be able to explain to you basically what SSH is and the value of using it.
+
+
+
+What "cron" is.
+
+Cron nedir?
+
+Cron, Linux'ta görevleri belirli zamanlarda otomatik çalıştıran zamanlayıcı servisidir. Arka planda sürekli çalışan cron daemon'ı her dakika kontrol tablosuna bakar ve zamanı gelen komutu çalıştırır.
+
+Değeri: Yedek alma, log temizleme, güncelleme kontrolü gibi tekrarlayan işleri elle yapmak gerekmez. Born2beRoot'ta monitoring.sh her 10 dakikada bir kendiliğinden çalışıp bilgileri tüm terminallere yayınlıyor.
+
+Zamanlanmış görevlerin listesine crontab (cron table) denir. Her kullanıcının kendi crontab'ı olabilir.
+
+bash
+sudo crontab -e     # root'un crontab'ını düzenle
+sudo crontab -l     # root'un crontab'ını listele
+sudo systemctl status cron   # servis çalışıyor mu
+
+Not: Born2beRoot'ta sudo crontab -e ile root'un crontab'ını düzenlersin, çünkü script wall ve sistem bilgileri okuyor. -e edit (düzenle), -l list demek.
+
+Crontab satır formatı
+┌──────── dakika (0-59)
+│ ┌────── saat (0-23)
+│ │ ┌──── ayın günü (1-31)
+│ │ │ ┌── ay (1-12)
+│ │ │ │ ┌ haftanın günü (0-7)
+│ │ │ │ │
+* * * * *  komut
+* her değer demek.
+*/10 her 10 birimde bir demek (0, 10, 20, 30, 40, 50).
+@reboot özel bir kısayol: sistem açıldığında bir kez çalıştır.
+1. satır: @reboot sleep 10 && /usr/local/bin/monitoring.sh
+@reboot: Makine her açıldığında bu görev bir kez çalışır.
+sleep 10: 10 saniye bekle. Açılışın hemen başında ağ ve diğer servisler tam hazır olmayabilir, bu bekleme onlara zaman tanır.
+&&: Soldaki komut başarılı biterse sağdakini çalıştır. Yani önce 10 saniye bekle, sonra script'i başlat.
+/usr/local/bin/monitoring.sh: Çalıştırılacak script. Tam yolla yazılır, çünkü cron'un ortam değişkenleri (PATH) sınırlıdır.
+
+Sonuç: Sistem açıldıktan 10 saniye sonra ilk monitoring çıktısı gelir.
+
+2. satır: */10 * * * * sleep $(uptime -s | awk -F: '{print $2\%10*60+$3}') && /usr/local/bin/monitoring.sh
+
+Zamanlama kısmı */10 * * * *: Her saatin 0, 10, 20, 30, 40, 50. dakikasında çalış.
+
+Asıl numara sleep $(...) kısmı. Subject, script'in "sunucu başlatıldığından itibaren her 10 dakikada bir" çalışmasını ister. Saf */10 ise saat başına göre çalışır. Makine 09:03:27'de açıldıysa script 09:10:00'da çalışırdı, ama olması gereken 09:13:27'dir. Bu yüzden her çalışmadan önce, açılışın dakika ve saniye farkı kadar beklenir.
+
+Parça parça:
+
+uptime -s: Sistemin açıldığı zamanı verir. Örnek çıktı: 2026-11-26 09:03:27
+awk -F: ...: Satırı : işaretinden böler (-F: ayraç demek). Örnekte parçalar:
+$1 = 2026-11-26 09
+$2 = 03 (dakika)
+$3 = 27 (saniye)
+$2\%10*60+$3: Hesap: (dakika % 10) * 60 + saniye.
+% 10 dakikanın 10'a bölümünden kalan, yani 10 dakikalık dilim içindeki konumu verir (3. dakika → 3).
+* 60 bunu saniyeye çevirir (180).
++ $3 saniyeyi ekler (207).
+sleep 207: 207 saniye bekle.
+&& monitoring.sh: Sonra script'i çalıştır.
+
+Sonuç: cron :10'da tetiklenir, 207 saniye (3 dk 27 sn) bekler ve script 09:13:27'de çalışır. Bir sonrakisi 09:23:27 olur. Böylece script, açılış saatine hizalı olarak her 10 dakikada bir çalışır.
+
+\% neden ters bölülü? Crontab'ta % özel anlama sahip (yeni satır olarak yorumlanır). Komutta düz % yazarsan bozulur. \% ile kaçırırsın ve shell'e normal % olarak ulaşır.
+
+Değerlendirmede kısa cevap
+
+"Cron, görevleri belirli zamanlarda otomatik çalıştıran zamanlayıcıdır. @reboot satırı sistem açılınca 10 saniye bekleyip script'i bir kez çalıştırır. İkinci satır */10 ile her 10 dakikada bir tetiklenir, ama önce açılış zamanının dakika ve saniyesine göre bekler. Böylece script açılıştan itibaren tam 10'ar dakika aralıkla çalışır."
+
+Finally, the learner being evaluated should make the script stop running when the server has started up, but without
+modifying the script itself.
+systemctl stop cron
+
+
+
+
+SSH nedir?
+
+SSH (Secure Shell), bir makineye ağ üzerinden şifreli ve kimliği doğrulanmış şekilde bağlanıp komut çalıştırmanı sağlayan protokoldür. Born2beRoot'ta kendi bilgisayarımdan VM'in terminaline SSH ile bağlanıyorum, sanki klavyenin başındaymışım gibi komut yazıyorum.
+
+Sunucu tarafında bunu sshd servisi sağlıyor (daha önce ss çıktısında 4242 portunu dinleyen süreç), istemci tarafında ssh komutu kullanılıyor.
+
+Değeri nedir?
+Şifreleme: Aradaki tüm trafik şifreli. Eski telnet gibi protokoller parolayı ve komutları düz metin gönderir, ağı dinleyen biri hepsini görür. SSH'ta dinleyen sadece anlamsız veri görür.
+Kimlik doğrulama: Bağlanan kişi parola ya da anahtar çiftiyle kim olduğunu kanıtlar. Sunucu da ilk bağlantıda kendi parmak iziyle kendini tanıtır, böylece yanlış sunucuya bağlanmanı (man-in-the-middle) fark edebilirsin.
+Uzaktan yönetim: Fiziksel erişim gerekmez. Gerçek sunucular genelde başka bir şehirde ya da veri merkezinde durur, yönetmenin yolu SSH'tır.
+Veri bütünlüğü: Taşınan verinin yolda değiştirilmediği doğrulanır.
+Ek yetenekler: scp ve sftp ile güvenli dosya aktarımı, port yönlendirme (tünel) yapabilirsin.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
