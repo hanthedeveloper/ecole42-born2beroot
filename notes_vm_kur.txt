@@ -125,50 +125,6 @@ araçlarını kurar. Seç. Grafik arayüz içermez, sistemle çalışmak için f
 Choose a Debian Blend for installation: Debian Pure Blends (Debian Edu, Debian Med, Debian Science gibi
 belli bir kullanım alanına göre hazırlanmış paket setleri) için bir seçim ekranı. Hiçbirini seçme. Bu projeyle
 ilgisi yok, çoğu grafik arayüz getirir. Ekran boş geliyorsa ya da zorunlu değilse geç.
-
-
-
-
-
-
-
-
-
-
-
-1. Grafik arayüz yok (en önemlisi)
-bash
-dpkg -l | grep -E "xorg|wayland|gnome|kde|xfce|lxde|lxqt|mate|cinnamon"
-
-Çıktı boş gelmeli. Ayrıca:
-
-bash
-systemctl status display-manager
-
-"Unit display-manager.service could not be found" demeli.
-
-Bir de makineyi açtığında giriş ekranının sadece siyah terminal olması zaten ilk kanıt.
-
-2. Apache2 (web server) yok
-bash
-dpkg -l | grep apache2
-systemctl status apache2
-
-İlki boş, ikincisi "could not be found" demeli.
-
-3. Hangi servisler çalışıyor ve hangi portlar açık
-bash
-systemctl list-units --type=service --state=running
-ss -tunlp
-
-ss çıktısında sadece 4242 portunu dinleyen sshd görünmeli (80 numaralı port yoksa web server de çalışmıyordur).
-
 4. Kurulum sırasında ne seçtiğini görmek
 bash
 tasksel --list-tasks
-
-
-
-
-
-

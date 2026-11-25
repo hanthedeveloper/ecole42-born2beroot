@@ -160,6 +160,8 @@ grafical user interface yok
 systemctl get-default
 dpkg -l | grep -Ei 'xorg|wayland'
 İlki multi-user.target vermeli, ikincisi boş dönmeli.
+systemctl status display-manager
+"Unit display-manager.service could not be found" demeli.
 
 root@haincel42:~# cat /etc/login.defs | grep PASS_MAX_DAYS
 #       PASS_MAX_DAYS   Maximum number of days a password may be used.

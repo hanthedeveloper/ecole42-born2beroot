@@ -1,79 +1,51 @@
 systemctl
-system control kısaltması. Debian’da servisleri (arka planda çalışan programları) yöneten araç. Bunun arkasındaki sisteme systemd denir.
-Bilgisayar açılırken ilk başlayan ve diğer tüm servisleri başlatıp yöneten ana süreçtir.
-
-status
-systemctl’e verilen alt komut. “Şu servisin durumunu göster” demek.
-
+system control kısaltması. Debian’da servisleri yöneten araç. Bunun arkasındaki sisteme systemd denir.
 su
-substitute user (bazen “switch user” diye de anılır) kısaltması. Başka bir kullanıcıya geçmeni sağlar. Kullanıcı adı yazmazsan varsayılan olarak root’a geçer.
+substitute user (bazen “switch user” diye de anılır) kısaltması.
+Başka bir kullanıcıya geçmeni sağlar. Kullanıcı adı yazmazsan varsayılan olarak root’a geçer.
+"-"
+Bu işaret, geçtiğin kullanıcının tam giriş ortamını yüklemesini sağlar (aslında -l ya da --login ile aynı).
+Yani sanki o kullanıcı olarak baştan giriş yapmışsın gibi olur.
 
--
-Bu işaret, geçtiğin kullanıcının tam giriş ortamını yüklemesini sağlar (aslında -l ya da --login ile aynı). Yani sanki o kullanıcı olarak baştan giriş
-yapmışsın gibi olur.
-
-su ile su - farkı (savunmada sorulabilir)
-su	su -
-Kullanıcı	root olur	root olur
-Çalışma dizini	eski dizinde kalırsın	root’un home’una (/root) geçersin
-Ortam değişkenleri (PATH vb.)	eski kullanıcınınkiler kalır	root’unkiler yüklenir
-
-Başka kullanıcıya da geçebilirsin
-
-bash
-su - kullanici_adi
-
-nano /etc/ssh/sshd_config
-Claude responded: nano
-nano
-Terminalde çalışan basit bir metin düzenleyici. Grafik arayüz olmadığı için dosyayı fare ile açıp düzenleyemezsin, terminal içinde düzenleyen bir program gerekir. Seçenekler:
-
-Editör	Özellik
-nano	Basit, alttaki kısayollar ekranda yazar, yeni başlayanlar için ideal
-vim	Çok güçlü ama öğrenmesi zor, çıkmak bile başlangıçta sorun olur
-vi	Vim’in eski, sade hali
-Zorunluluk yok, vim de kullanabilirsin. nano sadece kolay olduğu için önerildi.
-
-Temel nano kısayolları (^ işareti Ctrl demek):
-
-Ctrl+O → kaydet (Enter ile onayla)
-Ctrl+X → çık
-Ctrl+W → arama yap (uzun dosyada Port gibi bir satırı bulmak için)
 /etc
 Linux’ta sistem ayar dosyalarının durduğu klasör. İsmi eskiden “et cetera”
 (vesaire) anlamından gelir, bugün ise “editable text configuration” diye yorumlanır.
 Yani programların ayarlarının tutulduğu yer.
-Bazı örnekler:
 
 /etc/ssh/ → SSH ayarları
 /etc/sudoers → sudo kuralları
 /etc/hostname → makinenin adı
 /etc/login.defs → parola süresi kuralları
 /etc/pam.d/ → parola kalitesi kuralları
-Bu proje boyunca sürekli /etc altında dosya düzenleyeceksin.
-
 Neden böyle bir dosya var?
-Linux’ta programların ayarları düz metin dosyalarında tutulur. Program açılırken bu dosyayı okur ve ona göre davranır. Bu yüzden ayar değiştirmek için programı yeniden derlemene gerek yok, dosyayı düzenleyip servisi yeniden başlatman yeterli.
+Linux’ta programların ayarları düz metin dosyalarında tutulur. Program açılırken bu dosyayı okur ve ona göre
+davranır. Bu yüzden ayar değiştirmek için programı yeniden derlemene gerek yok, dosyayı düzenleyip servisi
+yeniden başlatman yeterli.
 
 /etc/ssh/sshd_config özel olarak SSH sunucusunun (sshd) ayar dosyasıdır. İçinde port numarası,
 root girişine izin verilip verilmediği gibi ayarlar var. Port’u 4242 yapmak için bu dosyadaki
 Port satırını değiştiriyorsun.
-
+/etc/ssh/ssh_config: istemci ayarları. Sen başka bir makineye bağlanırken ssh komutu bunu kullanır.
+/etc/ssh/sshd_config: sunucu ayarları. Sana gelen bağlantıları kabul eden sshd
+(d = daemon, arka planda çalışan servis) bunu kullanır.
 Host Port: senin bilgisayarında açılan port. Bağlanırken -p ile yazdığın bu.
 Guest Port: VM içinde sshd’nin dinlediği port. Bu zaten 4242 ve ss çıktında doğru çalıştığını gördük.
-
-sshd_config ile ssh_config farkı
-Klasörde iki benzer dosya var, karıştırma:
-
-sshd_config → sunucu tarafı (VM’e gelen bağlantıları ayarlar). Bunu düzenliyorsun.
-ssh_config → istemci tarafı (VM’den dışarı bağlanırken kullanılır)
-Sondaki d daemon demek, yani arka planda çalışan servis anlamına gelir.
+IP adresi makineyi bulur, port ise o makinedeki hangi servise gidileceğini belirler. 
+Bina (IP) ve kapı numarası (port) gibi düşün.
+SSH’ın varsayılan portu 22'dir. Herkes bunu bilir, botlar sürekli 22'yi tarar.
+Port 4242 yazınca sshd artık 22'yi dinlemez, 4242'yi dinler. Bağlanırken ssh kullanici@ip -p 4242 demen gerekir.
 
 host terminali                VirtualBox                 VM içi
 ssh -p 4242 localhost  ->  host'ta 4242'yi dinler  ->  VM'e iletir  ->  sshd (4242)
+
 “Port dolu” demek, o port numarasını şu an başka bir programın kullanıyor olması demek.
-ss -tunlp ne demek?
-ss socket statistics demek, makinenin hangi portları dinlediğini ve hangi bağlantıların açık olduğunu gösterir. -tunlp ise tek tek harflerin birleşimi:
+
+4242 portu kapalı:
+k0m04s01% ss -tulnp | grep 4242
+tcp   LISTEN 0      5           127.0.0.1:4242       0.0.0.0:*
+k0m04s01% 
+
+ss socket statistics demek, makinenin hangi portları dinlediğini ve hangi bağlantıların açık olduğunu gösterir.
 
 Harf	Anlamı
 -t	TCP bağlantıları göster
@@ -82,15 +54,9 @@ Harf	Anlamı
 -l	Listening: sadece dinleyen (bağlantı bekleyen) portları göster
 -p	Process: portu hangi programın kullandığını göster
 
-sudo ındırme, kendı kullanıcımı sudoya ekleme
-apt update
-apt install sudo
-apt Debian’ın paket yöneticisi. Program kurmak, güncellemek, silmek için kullanılır
-
-Kullanıcını sudo grubuna ekle
+var olan kullanıcıyı sudo grubuna ekle
 usermod -aG sudo haincel
-Var olan bir kullanıcının ayarlarını değiştiren komut.
-Yeni kullanıcı oluşturmaz, mevcut olanı düzenler.
+
 -a (append): Ekle, mevcut grupları silme.
 -G (groups): Hangi gruplara ekleneceğini belirt.
 -g (küçük): kullanıcının birincil (primary) grubunu değiştirir.
@@ -100,67 +66,50 @@ Bu yüzden -aG birlikte yazılır.
 Yani usermod -aG sudo haincel = “haincel kullanıcısını, diğer gruplarından çıkarmadan,
 sudo grubuna ekle”. Sudo grubundaki kullanıcılar sudo kullanma yetkisi kazanır.
 
-Kontrol:
-getent Sudo ayar dosyasını (/etc/sudoers ve /etc/sudoers.d/ altındakiler) güvenli düzenlemek için
-özel bir editördür.
-Debian'da bir kullanıcı oluşturulduğunda kendi adıyla bir primary group da otomatik oluşur (User Private Group). groups haincel çıktısında ilk sıradaki haincel o grubun kendisidir, geri kalanlar secondary gruplardır.
+Debian’da adduser ya da useradd ile yeni bir kullanıcı açtığında, kullanıcıyla aynı isimde yeni bir grup
+otomatik oluşturulur ve bu grup kullanıcının birincil grubu olur. Örneğin haincel kullanıcısının birincil
+grubu haincel olur. Bunu id haincel ya da groups haincel komutuyla görebilirsin.
+Neden kendi adıyla bir grup?
+Bu yönteme User Private Group (UPG) şeması denir. Nedenleri:
+Gizlilik ve güvenlik: Eski sistemlerde herkes ortak bir users grubuna konurdu.
+Bu durumda umask gevşek olursa (örneğin 002) dosyalar aynı gruptaki herkes tarafından okunabilir/yazılabilir
+hale gelirdi. Her kullanıcının kendine özel bir grubu olunca, dosyaların grup sahibi sadece o kullanıcı olur ve
+başka kimse yanlışlıkla erişim kazanmaz.
+Güvenli grup paylaşımı: Birkaç kişinin ortak bir proje klasöründe çalışması gerekiyorsa ayrı bir grup (ör. proje)
+oluşturup klasöre setgid biti (chmod g+s) verirsin. Kullanıcıların birincil grubu özel olduğu için, bu paylaşım
+dışında dosyalar kimseyle paylaşılmaz.
+Daha rahat umask: Debian varsayılan umask’ı 022’dir, ama UPG sayesinde 002 kullanmak da güvenli hale gelir, çünkü
+grup zaten tek kişiliktir.
+Basitlik ve tutarlılık: Her kullanıcının benzersiz bir UID’si olduğu gibi benzersiz bir GID’si de olur; yönetim ve
+yetkilendirme daha net olur.
+umask, yeni oluşturulan dosya ve klasörlerin varsayılan izinlerinden hangi izinlerin çıkarılacağını
+belirleyen bir maskedir. Yani “neyi vermeyeceğini” söyler.
+Sistem yeni bir dosya veya klasör oluştururken önce maksimum izinle başlar, sonra umask’taki
+bitleri bu izinlerden çıkarır:
+Dosyalar için başlangıç: 666 (rw-rw-rw-), çünkü dosyalar varsayılan olarak çalıştırılabilir olmaz.
+Klasörler için başlangıç: 777 (rwxrwxrwx)
+Örnek (umask 022):
+Başlangıç	umask	Sonuç
+Dosya	666	022	644 (rw-r--r--)
+Klasör	777	022	755 (rwxr-xr-x)
+Yani sahibi her şeyi yapabilir, grup ve diğerleri sadece okuyabilir.
+Örnek (umask 002):
+Başlangıç	umask	Sonuç
+Dosya	666	002	664 (rw-rw-r--)
+Klasör	777	002	775 (rwxrwxr-x)
+Grup da yazabilir. Bu, önceki cevaptaki user private group mantığıyla güvenli hale gelir, çünkü grupta
+sadece kullanıcının kendisi vardır.
 
-
-visudo yazdığında açılan şey /etc/sudoers dosyasıdır. sudo'nun "kim, hangi makinede, kimin yetkisiyle, hangi komutu çalıştırabilir" kurallarını tutan ana yapılandırma dosyası budur.
-
+visudo yazdığında açılan şey /etc/sudoers dosyasıdır. sudo'nun "kim, hangi makinede, kimin yetkisiyle, hangi komutu
+çalıştırabilir" kurallarını tutan ana yapılandırma dosyası budur.
 Neden direkt nano /etc/sudoers değil de visudo?
-
-visudo dosyayı kaydederken sözdizimini kontrol eder. Hata varsa "What now?" diye sorar ve bozuk dosyayı kaydetmene izin vermez. Çünkü sudoers bozulursa sudo çalışmaz, root'a erişimin kalmayabilir. Aynı anda iki kişinin dosyayı düzenlemesini de kilitleyerek engeller.
-
-sudo kural koyma 
-
-Defaults passwd_tries=3
-sudo çalıştırınca parola sorulur. Yanlış girersen en fazla 3 kez denemene izin verir, sonra komut iptal olur. Varsayılan zaten 3'tür, subject açıkça yazılmasını istediği için ekliyoruz.
-
-Defaults badpass_message="Yanlis parola, tekrar dene"
-Yanlış parola girdiğinde ekranda çıkacak mesaj. İstediğin metni yazabilirsin. Tırnak içinde olmalı.
-
-Defaults logfile="/var/log/sudo/sudo_config"
-Her sudo kullanımının (kim, ne zaman, hangi komutu çalıştırdı) yazılacağı log dosyası. Klasör (/var/log/sudo) önceden var olmalı, o yüzden mkdir -p /var/log/sudo yapıyoruz.
-
-Defaults log_input, log_output
-log_input, sudo oturumunda klavyeden yazdıklarını, log_output ise ekrana çıkan her şeyi kaydeder. Yani bir komutun sonucu bile sonradan incelenebilir.
-
-Defaults iolog_dir="/var/log/sudo"
-Yukarıdaki input/output kayıtlarının saklanacağı klasör. (logfile özet bir metin log’udur, iolog_dir ise oturumların tam kaydıdır.)
-
-Defaults requiretty
-sudo sadece gerçek bir terminalden (TTY) çalışır. Bir script, cron işi veya ele geçirilmiş bir
-web servisi terminalsiz şekilde sudo çağıramaz. Güvenlik önlemidir. Normal SSH bağlantında terminal
-olduğu için sorun çıkarmaz.
-
-Defaults secure_path="..."
-sudo ile çalışan komutların hangi klasörlerde aranacağını sabitler (/usr/sbin, /usr/bin, /bin vb.). Böylece birisi kendi PATH’ine sahte bir ls koyup sudo ile çalıştıramaz. Klasörler : ile ayrılır.
-Aslında değiştirmek zorunda değiliz. Sadece :/snap/bin eklemek Born2beroot subject’inde istenen bir şey, o yüzden önerdim.
-
-Neden ekleniyor?
-Subject, secure_path değerinin şu olmasını ister:
-
-
-/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin
-Debian’ın varsayılan satırında sonda /snap/bin yok, o yüzden “eksik olan tek parçayı ekle” dedim. Değerlendirmede (defense) bu satırın subject’tekiyle aynı olması beklenir.
-
-Neden baştan yazmak yerine sadece ekleme?
-Sorunun asıl nedeni muhtemelen klavye düzeni olduğu için: =, _, " gibi sembolleri yazarken bozuluyor. Mevcut satıra dokunmadan sadece sonuna :/snap/bin eklersen bu sembollerden sadece : ve / yazman gerekir, hata riski çok azalır.
-
-/snap/bin ne işe yarar?
-Snap paket sistemiyle kurulan programların bulunduğu klasördür. Born2beroot’ta snap kullanmasan bile subject bunu istediği için ekliyoruz. Zararı yok.
-
-
-
-sudo -l (list), mevcut kullanıcının sudo ile hangi komutları çalıştırabileceğini listeler. Şifreni sorar, sonra /etc/sudoers kurallarına bakıp şunları gösterir:
-
-Hangi Defaults ayarları senin için geçerli (passwd_tries, secure_path, requiretty vb.)
-Hangi kullanıcı olarak ve hangi komutları çalıştırabilirsin. (ALL : ALL) ALL "her kullanıcı/grup adına, her komutu" demektir.
-
+visudo dosyayı kaydederken sözdizimini kontrol eder. Hata varsa "What now?" diye sorar ve bozuk dosyayı kaydetmene
+izin vermez. Çünkü sudoers bozulursa sudo çalışmaz, root'a erişimin kalmayabilir. Aynı anda iki kişinin dosyayı
+düzenlemesini de kilitleyerek engeller.
 
 UFW güvenlik duvarı: sadece 4242 portu açık
-SSH ayarları: port 4242, root girişi kapalı (bu aşamada ilk sorunumuza, kex_exchange_identification hatasına da döneceğiz),
+SSH ayarları: port 4242, root girişi kapalı (bu aşamada ilk sorunumuza, kex_exchange_identification hatasına da
+döneceğiz),
 
 once apt install openssh-server
 nano /etc/ssh_sshd_config -> permitrootlogin no
@@ -300,16 +249,6 @@ pam_pwquality ne yapar?
 pam_pwquality, PAM’in password grubunda çalışan bir modüldür. Birisi passwd ile yeni şifre belirlediğinde, şifre kaydedilmeden önce devreye girer ve kalitesini ölçer: uzunluk, karakter çeşitliliği, tekrar, kullanıcı adı içerme, eski şifreye benzerlik. Kurallardan biri bile sağlanmazsa şifreyi reddeder ve retry hakkı kadar tekrar sordurur.
 
 Bir de sözlük kontrolü yapar: şifre yaygın bir kelimeyse (password, qwerty) onu da reddedebilir.
-
-
-
-
-
-
-
-
-
-
 
 Adım 1: İskeleti kur
 ￼
