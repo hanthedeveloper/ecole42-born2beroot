@@ -1,0 +1,261 @@
+LVM’i adım adım anlatayım
+Normal bölümlemede her bölümün boyutu başta sabitlenir.
+/home dolarsa ve yanındaki /var yarı boşsa, aradaki alanı kolayca aktaramazsın.
+Bölümler diskte yan yana dizildiği için birini büyütmek komşusunu küçültmeyi gerektirir.
+LVM bu sabitliği ortadan kaldırmak için araya bir soyutlama katmanı koyar.
+Dosya sistemleri gerçek disk bölümlerine değil, LVM’in sunduğu esnek parçalara kurulur.
+
+Bir benzetme: PV tuğla, VG depo, LV o depodan kestiğin raflar.
+Gerçek dünya                            LVM dünyası
+
+sda5_crypt  ──►  PV  ──┐
+                       ├──►  VG (LVMGroup)  ──►  LV root     → /
+(ileride bir disk        │      (tek büyük         LV swap     → [SWAP]
+ daha eklesen)  ──► PV ──┘       havuz)            LV home     → /home
+                                                   LV var      → /var
+                                                   LV srv      → /srv
+                                                   LV tmp      → /tmp
+                                                   LV var-log  → /var/log
+
+1. Physical Volume
+LVM’in ham maddesi. Bir disk, bir bölüm ya da senin durumunda şifresi açılmış sda5_crypt aygıtı olabilir.
+Bir aygıtı “LVM için fiziksel cilt” olarak işaretlediğinde LVM onun başına kendi etiketini ve bilgilerini
+yazar ve onu kullanılabilir bir parça olarak tanır.
+
+haincel@haincel42:~$ sudo pvdisplay
+[sudo] password for haincel: 
+  --- Physical volume ---
+  PV Name               /dev/mapper/sda5_crypt
+  VG Name               LVMGroup
+  PV Size               <29.52 GiB / not usable 0   
+  Allocatable           yes 
+  PE Size               4.00 MiB
+  Total PE              7556
+  Free PE               349
+  Allocated PE          7207
+  PV UUID               czbjG3-yw0z-O2XX-esOw-295c-jlsA-D2zXyJ
+   
+haincel@haincel42:~$
+
+2. Volume Group
+Bir ya da daha fazla PV’nin birleştirilmesiyle oluşan tek büyük depolama havuzu. Havuzun ismini sen
+verirsin (bonus örneğinde LVMGroup). Havuzun toplam boyutu, içindeki Physical Volume’lerin toplamıdır.
+Senin durumunda tek PV var, yani VG yaklaşık 31 GB.
+
+haincel@haincel42:~$ sudo vgdisplay
+  --- Volume group ---
+  VG Name               LVMGroup
+  System ID             
+  Format                lvm2
+  Metadata Areas        1
+  Metadata Sequence No  8
+  VG Access             read/write
+  VG Status             resizable
+  MAX LV                0
+  Cur LV                7
+  Open LV               7
+  Max PV                0
+  Cur PV                1
+  Act PV                1
+  VG Size               <29.52 GiB
+  PE Size               4.00 MiB
+  Total PE              7556
+  Alloc PE / Size       7207 / 28.15 GiB
+  Free  PE / Size       349 / 1.36 GiB
+  VG UUID               gSlaGM-dcl2-FqCu-8qd8-9snl-jJ9t-6pxO9w
+
+3. Logical Volume
+Havuzdan istediğin boyutta kestiğin parçalar. Dosya sistemi ve bağlama noktası (/, /home...)
+bunların üzerine kurulur. İşletim sistemi LV’yi normal bir disk bölümü gibi görür. Fiziksel olarak
+parçaların diskte nerede durduğunu bilmesine gerek yok.
+Avantajları ::
+1 Boyut değiştirme: /home dolarsa havuzda boş alan varsa lvextend ile büyütürsün, hatta sistem çalışırken
+yapabilirsin. Küçültmek de mümkün ama bölümü önce unmount etmen gerekir.
+2 Havuz mantığı: Başlangıçta LV’lerin toplamını havuzun tamamına eşitlemek zorunda değilsin. Boş alanı
+sonradan ihtiyaç duyan LV’ye verirsin.
+3 Disk ekleme: Yeni bir disk takarsan onu Physical Volume yapıp Volume Group a katarsın, havuz büyür.
+4 Ayrı yönetim: Her LV bağımsız dosya sistemidir. Biri dolsa diğerleri etkilenmez.
+
+haincel@haincel42:~$ sudo lvdisplay
+  --- Logical volume ---
+  LV Path                /dev/LVMGroup/root
+  LV Name                root
+  VG Name                LVMGroup
+  LV UUID                Lu1ox3-HOWY-Jxda-VWbb-QD3S-5oss-DuUPFp
+  LV Write Access        read/write
+  LV Creation host, time haincel42, 2026-11-24 19:37:48 +0300
+  LV Status              available
+  # open                 1
+  LV Size                <10.00 GiB
+  Current LE             2559
+  Segments               1
+  Allocation             inherit
+  Read ahead sectors     auto
+  - currently set to     256
+  Block device           254:1
+   
+  --- Logical volume ---
+  LV Path                /dev/LVMGroup/swap
+  LV Name                swap
+  VG Name                LVMGroup
+  LV UUID                3FUOj1-lB9l-TtUf-YRHY-vaEP-3Ql1-BFkM1g
+  LV Write Access        read/write
+  LV Creation host, time haincel42, 2026-11-24 19:38:06 +0300
+  LV Status              available
+  # open                 1
+  LV Size                <2.30 GiB
+  Current LE             588
+  Segments               1
+  Allocation             inherit
+  Read ahead sectors     auto
+  - currently set to     256
+  Block device           254:2
+   
+  --- Logical volume ---
+  LV Path                /dev/LVMGroup/home
+  LV Name                home
+  VG Name                LVMGroup
+  LV UUID                Ose19y-2Bup-RYJp-CHmh-5opM-JLPN-7TJLnU
+  LV Write Access        read/write
+  LV Creation host, time haincel42, 2026-11-24 19:38:24 +0300
+  LV Status              available
+  # open                 1
+  LV Size                5.00 GiB
+  Current LE             1280
+  Segments               1
+  Allocation             inherit
+  Read ahead sectors     auto
+  - currently set to     256
+  Block device           254:3
+   
+  --- Logical volume ---
+  LV Path                /dev/LVMGroup/var
+  LV Name                var
+  VG Name                LVMGroup
+  LV UUID                Ljf8OK-5haL-nVYR-AsnO-L92C-VuUk-ExSLMc
+  LV Write Access        read/write
+  LV Creation host, time haincel42, 2026-11-24 19:38:39 +0300
+  LV Status              available
+  # open                 1
+  LV Size                3.00 GiB
+  Current LE             768
+  Segments               1
+  Allocation             inherit
+  Read ahead sectors     auto
+  - currently set to     256
+  Block device           254:4
+   
+  --- Logical volume ---
+  LV Path                /dev/LVMGroup/srv
+  LV Name                srv
+  VG Name                LVMGroup
+  LV UUID                soY4A0-Apc4-oQ7Z-q2ZE-zCGg-4tAM-dLfptk
+  LV Write Access        read/write
+  LV Creation host, time haincel42, 2026-11-24 19:38:52 +0300
+  LV Status              available
+  # open                 1
+  LV Size                3.00 GiB
+  Current LE             768
+  Segments               1
+  Allocation             inherit
+  Read ahead sectors     auto
+  - currently set to     256
+  Block device           254:5
+   
+  --- Logical volume ---
+  LV Path                /dev/LVMGroup/tmp
+  LV Name                tmp
+  VG Name                LVMGroup
+  LV UUID                S20Oyd-jTON-JZ2l-vAD3-MUfK-Ct3e-Mlpf0d
+
+Neden LVM, şifrelemenin içinde?
+Sıra şöyle:
+sda5  →  şifreleme (dm-crypt)  →  sda5_crypt  →  LVM  →  LV'ler
+Bu şekilde tek parola ile tüm LV’ler (root, home, var, swap dahil) birden açılır.
+Tersini yapsaydın, yani LVM’i önce kurup her LV’yi ayrı şifrelemek zorunda kalsaydın,
+her biri için ayrı parola ve ayrı ayar gerekirdi. Ayrıca LVM’in kendi yapısı (hangi LV’nin hangi boyutta
+olduğu) da dışarıdan görünür olurdu. Şifreli katmanın içinde olunca dışarıdan bakan biri sadece anlamsız
+rastgele veri görür.
+
+Neden sda1 şifrelenmiyor, sda5 şifreleniyor?
+Bilgisayarın açılış sırası, bu sorunun cevabını verir:
+BIOS diskin başındaki bölümleme tablosuna ve önyükleyiciye bakar.
+GRUB çalışır ve /boot bölümünden kernel dosyaları okuyup belleğe yükler.
+Kernel başlar, initramfs içindeki geçici araçlarla parolayı sorar.
+Parola doğruysa sda5 açılır ve sda5_crypt oluşur.
+LVM etkinleşir, LV’ler bulunur, / bağlanır ve sistem normal şekilde ayağa kalkar.
+Dikkat edersen 2. adımda henüz hiçbir şifre açılmamış durumda. GRUB ve kernel’in okunabilmesi için
+/boot şifresiz olmak zorunda. Şifreyi soran yazılım (initramfs) bile /boot içinde duruyor. /boot şifreli
+olsaydı, o şifreyi soracak yazılımı yükleyemezdin.
+
+Bölüm                  İçerik                    Şifreli mi             Neden
+sda1      Kernel, initramfs, GRUB dosyaları       Hayır    Şifre sorulmadan önce okunması gerekiyor. Kişisel
+veri içermez.
+sda5    Sistem, kullanıcı verisi, loglar, swap     Evet        Asıl korunması gereken her şey burada.
+*** “/boot şifrelenemez çünkü önyükleyici ve kernel, şifre çözülmeden
+önce okunmak zorunda. Hassas veriler ise şifreli LVM’in içinde.” ***
+
+Neden numara 5?
+Diskte MBR (msdos) bölüm tablosu kullandığın için en fazla 4 birincil bölüm olabilir ve numaraları 1-4'tür.
+Mantıksal (logical) bölümler her zaman 5'ten başlar. Bu yüzden ikinci bölümü mantıksal açınca sda5 oldu.
+MBR (Master Boot Record), diskin en başındaki 512 baytlık bölgedir. İçinde önyükleme kodu ve bölüm tablosu bulunur.
+“msdos” etiketi, bu eski bölüm tablosu biçiminin adıdır.
+
+sda2 nerede?
+Mantıksal bölüm açtığında kurulum, onları içine alan bir genişletilmiş bölümü otomatik
+olarak sda2 adıyla oluşturur. Subject’in örneğindeki 1K boyutlu sda2 bu. İçinde veri tutmaz, sadece mantıksal
+bölümler için bir kap görevi görür. Neden var?
+MBR’de en fazla 4 birincil bölüm olabiliyor. Daha fazla bölüm gerekirse, 4 yuvadan biri “extended”
+yapılır ve bu bir kutu gibi davranır: içine istediğin kadar mantıksal bölüm (sda5, sda6...) konur.
+
+3 ve 4'ün özel bir görevi yok. 1, 2, 3, 4 sadece bölüm tablosundaki 4 boş yuvanın numarasıdır.
+Hiçbirinin “şu iş için” diye tanımlı bir görevi yok. Hangi yuvaya ne koyacağını sen seçersin
+(/boot, /, extended vb.). 3 ve 4 sadece “ileride kullanmak istersen elinde duran boş yuvalar”dır.
+
+Aslında sda tek bir tane, o senin 32.2 GB’lık sanal diskin. sda1, sda2, sda5 ise o diskin içindeki bölümler.
+Bonus yapısını kurduğunda lsblk çıktısı şöyle bir hiyerarşi gösterir:
+
+sda                    ← disk (tamamı)
+├─sda1                 ← /boot
+├─sda2                 ← genişletilmiş bölüm (kap)
+└─sda5                 ← şifreli bölüm
+  └─sda5_crypt         ← şifre açılmış sanal aygıt
+    ├─LVMGroup-root    ← /
+    ├─LVMGroup-swap    ← [SWAP]
+    ├─LVMGroup-home    ← /home
+    ├─LVMGroup-var     ← /var
+    ├─LVMGroup-srv     ← /srv
+    ├─LVMGroup-tmp     ← /tmp
+    └─LVMGroup-var--log ← /var/log
+
+Physical Volume (PV): sda5_crypt’in LVM’e “ham depolama alanı” olarak tanıtılmış hali.
+Volume Group (VG): bir veya birden fazla PV’nin birleştiği büyük depolama havuzu (örn. LVMGroup).
+Logical Volume (LV): VG havuzundan dilimlenmiş, gerçek kullandığın bölümler
+(orn. root, swap, home, var, srv, tmp, var-log).
+
+Disk ve bölümler
+Ad                   Ne işe yarar
+sda         Fiziksel (sanal) diskin kendisi.
+sda1        /boot. Kernel ve önyükleme dosyaları burada, şifresiz.
+sda2        Genişletilmiş bölüm. Sadece mantıksal bölümleri içinde tutan boş kap, veri içermez.
+sda5        Mantıksal bölüm. Şifrelenen ham alan. Ham haliyle okunduğunda anlamsız veri görünür.
+sda5_crypt  sda5’in parolayla açılmış hali. LVM bunun üstüne kurulur.
+
+LVM’in içindeki logical volume’ler
+Ad       Bağlama noktası         Ne işe yarar
+root       /                Sistemin ana dosyaları, programlar, ayarlar.
+swap       [SWAP]           RAM dolunca kullanılan takas alanı. Genelde RAM kadar ya da biraz fazlası.
+home       /home            Kullanıcıların kişisel dosyaları.
+var        /var             Değişen veriler: paket önbelleği, veritabanları, web sitesi verisi.
+srv        /srv             Sunucunun sunduğu servislerin verisi (bonusta web sitesi gibi).
+tmp        /tmp             Geçici dosyalar.
+var-log    /var/log         Log dosyaları. Subject’teki sudo logları (/var/log/sudo/) da burada durur.
+
+Not: lsblk çıktısında bir de sr0 görürsün. O sanal CD/DVD sürücüsü, kurulum ISO’sunu takmış olmandan
+geliyor, diskle ilgisi yok.
+
+sda5 sıfrelemesı nasıl calısıyor
+Disk, rastgele üretilmiş bir ana anahtarla şifreleniyor. Bu anahtar diskin başındaki LUKS başlığında duruyor ama
+kendisi de şifreli.
+Senin yazdığın parola bu ana anahtarı açıyor. Yani parola verinin kendisini değil, veriyi açan anahtarı koruyor.
+Parola doğru girilirse sda5_crypt oluşur, LVM etkinleşir, sistem açılır.

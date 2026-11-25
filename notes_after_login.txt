@@ -1,5 +1,6 @@
 systemctl
-system control kısaltması. Debian’da servisleri (arka planda çalışan programları) yöneten araç. Bunun arkasındaki sisteme systemd denir. Bilgisayar açılırken ilk başlayan ve diğer tüm servisleri başlatıp yöneten ana süreçtir.
+system control kısaltması. Debian’da servisleri (arka planda çalışan programları) yöneten araç. Bunun arkasındaki sisteme systemd denir.
+Bilgisayar açılırken ilk başlayan ve diğer tüm servisleri başlatıp yöneten ana süreçtir.
 
 status
 systemctl’e verilen alt komut. “Şu servisin durumunu göster” demek.
@@ -8,7 +9,8 @@ su
 substitute user (bazen “switch user” diye de anılır) kısaltması. Başka bir kullanıcıya geçmeni sağlar. Kullanıcı adı yazmazsan varsayılan olarak root’a geçer.
 
 -
-Bu işaret, geçtiğin kullanıcının tam giriş ortamını yüklemesini sağlar (aslında -l ya da --login ile aynı). Yani sanki o kullanıcı olarak baştan giriş yapmışsın gibi olur.
+Bu işaret, geçtiğin kullanıcının tam giriş ortamını yüklemesini sağlar (aslında -l ya da --login ile aynı). Yani sanki o kullanıcı olarak baştan giriş
+yapmışsın gibi olur.
 
 su ile su - farkı (savunmada sorulabilir)
 su	su -
@@ -53,7 +55,12 @@ Bu proje boyunca sürekli /etc altında dosya düzenleyeceksin.
 Neden böyle bir dosya var?
 Linux’ta programların ayarları düz metin dosyalarında tutulur. Program açılırken bu dosyayı okur ve ona göre davranır. Bu yüzden ayar değiştirmek için programı yeniden derlemene gerek yok, dosyayı düzenleyip servisi yeniden başlatman yeterli.
 
-/etc/ssh/sshd_config özel olarak SSH sunucusunun (sshd) ayar dosyasıdır. İçinde port numarası, root girişine izin verilip verilmediği gibi ayarlar var. Port’u 4242 yapmak için bu dosyadaki Port satırını değiştiriyorsun.
+/etc/ssh/sshd_config özel olarak SSH sunucusunun (sshd) ayar dosyasıdır. İçinde port numarası,
+root girişine izin verilip verilmediği gibi ayarlar var. Port’u 4242 yapmak için bu dosyadaki
+Port satırını değiştiriyorsun.
+
+Host Port: senin bilgisayarında açılan port. Bağlanırken -p ile yazdığın bu.
+Guest Port: VM içinde sshd’nin dinlediği port. Bu zaten 4242 ve ss çıktında doğru çalıştığını gördük.
 
 sshd_config ile ssh_config farkı
 Klasörde iki benzer dosya var, karıştırma:
@@ -62,6 +69,9 @@ sshd_config → sunucu tarafı (VM’e gelen bağlantıları ayarlar). Bunu düz
 ssh_config → istemci tarafı (VM’den dışarı bağlanırken kullanılır)
 Sondaki d daemon demek, yani arka planda çalışan servis anlamına gelir.
 
+host terminali                VirtualBox                 VM içi
+ssh -p 4242 localhost  ->  host'ta 4242'yi dinler  ->  VM'e iletir  ->  sshd (4242)
+“Port dolu” demek, o port numarasını şu an başka bir programın kullanıyor olması demek.
 ss -tunlp ne demek?
 ss socket statistics demek, makinenin hangi portları dinlediğini ve hangi bağlantıların açık olduğunu gösterir. -tunlp ise tek tek harflerin birleşimi:
 
@@ -131,7 +141,6 @@ Aslında değiştirmek zorunda değiliz. Sadece :/snap/bin eklemek Born2beroot s
 Neden ekleniyor?
 Subject, secure_path değerinin şu olmasını ister:
 
-￼
 
 /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin
 Debian’ın varsayılan satırında sonda /snap/bin yok, o yüzden “eksik olan tek parçayı ekle” dedim. Değerlendirmede (defense) bu satırın subject’tekiyle aynı olması beklenir.
@@ -148,25 +157,6 @@ sudo -l (list), mevcut kullanıcının sudo ile hangi komutları çalıştırabi
 
 Hangi Defaults ayarları senin için geçerli (passwd_tries, secure_path, requiretty vb.)
 Hangi kullanıcı olarak ve hangi komutları çalıştırabilirsin. (ALL : ALL) ALL "her kullanıcı/grup adına, her komutu" demektir.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 UFW güvenlik duvarı: sadece 4242 portu açık
@@ -191,11 +181,362 @@ Debian’da (systemd kullanan sistemlerde) tüm servislerin ve sistemin logları
 Birlikte ne yapıyor?
 “SSH servisinin loglarını göster ve yeni bir şey olursa anında ekrana yaz.”
 
-Neden bunu kullandık?
-Sorunumuz host’tan bağlanamamaktı. Bu komutu VM’de açık bırakıp host’tan bağlanmayı denersen:
 
-Log’da yeni satır belirirse: bağlantı VM’e ulaşıyor demektir, satırın içeriği neden reddedildiğini söyler.
-Hiçbir şey belirmezse: bağlantı VM’e hiç gelmiyor, sorun VirtualBox port forwarding’de ya da host tarafında.
+
+
+
+apt install ufw
+ufw allow 4242
+ufw enable
+ufw status
+systemctl enable ufw
+
+root@haincel42:~# grep IPV6 /etc/default/ufw
+IPV6=yes
+root@haincel42:~# 
+
+IP, “Internet Protocol” demek: ağdaki her cihazın adresi. IPv4 ve IPv6 bu adreslerin iki farklı sürümü. (Yazılışı IPv, “ivp” değil.)
+
+IPv4
+Dört sayıdan oluşur, noktayla ayrılır:
+
+￼
+
+192.168.1.10
+10.0.2.15
+127.0.0.1
+Her sayı 0-255 arasındadır. Toplam yaklaşık 4,3 milyar adres çıkar. İnternet büyüyünce bu adresler yetmemeye başladı.
+
+IPv6
+Bu sorunu çözmek için geliştirildi. Adresler hex (16'lık) sayılarla yazılır, iki nokta ile ayrılır:
+
+￼
+
+2001:0db8:85a3:0000:0000:8a2e:0370:7334
+::1
+fe80::2d:ee93:d674:4114
+Adres sayısı pratikte tükenmez bir miktardır (yaklaşık 340 undesilyon). Kısaltma olarak ardışık sıfırlar :: ile yazılır.
+
+nano /etc/login.defs
+/etc/login.defs, sistemin kullanıcı hesapları için varsayılan ayarlarını tuttuğu dosyadır. İçinde şifre yaşlandırma süreleri, yeni kullanıcı oluştururken verilecek UID aralığı, home dizini izinleri gibi ayarlar bulunur. useradd komutu yeni bir kullanıcı oluşturduğunda bu dosyaya bakar ve kullanıcıya bu varsayılanları uygular.
+Bu yüzden daha önce söylediğim gibi: dosyayı değiştirmek sadece yeni açılacak kullanıcıları etkiler. Var olan root ve haincel için chage komutuyla ayrıca ayar yapılır, çünkü onların süreleri hesap oluşurken /etc/shadow dosyasına çoktan yazılmıştır.
+pam_pwquality satırı: tek tek açıklama
+￼
+
+password requisite pam_pwquality.so retry=3 minlen=10 ucredit=-1 lcredit=-1 dcredit=-1 maxrepeat=3 reject_username difok=7 enforce_for_root
+Önce satırın yapısı:
+
+password: bu satır şifre değiştirme işlemi için geçerli (PAM’in dört türünden biri: auth, account, session, password).
+requisite: bu modül başarısız olursa işlem hemen durur ve diğer modüllere hiç geçilmez. Yani zayıf şifre kesin reddedilir.
+pam_pwquality.so: çalıştırılacak modül.
+Geri kalanlar modüle verilen parametreler.
+Şimdi parametreler:
+
+retry=3
+Şifre kurallara uymazsa kullanıcıya 3 kez yeniden deneme şansı verir. 3 denemeden sonra passwd komutu hata ile çıkar. Amaç kullanıcıyı sonsuza kadar bekletmemek.
+
+minlen=10
+Şifre en az 10 karakter olmalı. Uzunluk, brute force (deneme yanılma) saldırısına karşı en etkili savunmadır. Her ek karakter, saldırganın denemesi gereken kombinasyon sayısını katlayarak artırır.
+
+ucredit=-1
+En az 1 büyük harf zorunlu. (Aşağıda eksi işaretini açıklayacağım.)
+
+lcredit=-1
+En az 1 küçük harf zorunlu.
+
+dcredit=-1
+En az 1 rakam zorunlu.
+
+Bu üçü şifrenin karakter havuzunu genişletir. Sadece küçük harfli bir şifrede 26 olasılık varken, büyük harf + küçük harf + rakam ile havuz 62 karaktere çıkar. Saldırganın işi çok zorlaşır.
+
+Eksi işaret neden? credit parametrelerinde işaret anlam değiştirir:
+
+Eksi değer (-1): “En az 1 tane olmak zorunda.” Zorunluluktur.
+Artı değer (+1): “Her bu tür karakter uzunluğa +1 bonus sayılır.” Zorunluluk yoktur, sadece minlen hesabında puan verir.
+Biz zorunluluk istediğimiz için eksi kullanıyoruz.
+
+maxrepeat=3
+Aynı karakter art arda en fazla 3 kez geçebilir. aaaa1B kabul edilmez. Çünkü 1111 ya da aaaa gibi örüntüler tahmin edilmesi çok kolay şifrelerdir ve saldırganların sözlüklerinde bulunur.
+
+reject_username
+Şifre, kullanıcı adını içeremez (düz ya da ters yazılmış hâliyle de). haincel kullanıcısı için Haincel123 ya da lecniah1A olmaz. Saldırganın ilk deneyeceği şey kullanıcı adına benzeyen şifrelerdir.
+
+difok=7
+Yeni şifrede, eski şifrede bulunmayan en az 7 karakter olmalı. “difok” kelimesi “different” kökünden gelir. Bu, kullanıcının Sifre1234A şifresini Sifre1234B yapıp “değiştirdim” demesini engeller. Yeni şifre gerçekten farklı olmalı.
+
+enforce_for_root
+Varsayılan olarak pwquality kuralları root için uyarı verir ama engellemez. Yani root zayıf şifre seçebilir. Bu parametre kuralları root için de zorunlu kılar. Subject “root şifren de bu politikaya uymalı” dediği için gerekli.
+chage -l haincel
+chage -l root
+PAM nedir?
+PAM, Pluggable Authentication Modules (Takılabilir Kimlik Doğrulama Modülleri) demektir.
+
+Problem
+Linux’ta kimlik doğrulama gerektiren birçok program var: login, ssh, sudo, su, passwd... Eskiden her program şifre kontrolünü kendi içinde yapardı. Yeni bir doğrulama yöntemi eklemek (örneğin parmak izi, 2 faktörlü doğrulama) için her programı tek tek değiştirip yeniden derlemek gerekirdi.
+
+Çözüm: PAM
+Tüm bu programlar kimlik doğrulamayı ortak bir katmana (PAM) devreder. Programlar “bu kullanıcı doğru mu?” diye PAM’a sorar, PAM de yapılandırma dosyalarında yazan modülleri sırayla çalıştırır ve sonucu döner.
+
+￼
+
+ssh / sudo / login / passwd
+          |
+          v
+         PAM  -->  /etc/pam.d/ içindeki ayarlara bakar
+          |
+          v
+   modüller (pam_unix, pam_pwquality, ...)
+Avantajı: Politikayı tek bir yerde değiştirirsin, onu kullanan tüm programlar etkilenir. Modülleri ekleyip çıkarmak programlara dokunmayı gerektirmez.
+
+PAM’in dört yönetim grubu
+Grup	Görevi
+auth	Kullanıcı kim, kimliğini kanıtlayabiliyor mu?
+account	Hesap geçerli mi? Süresi dolmuş mu? Bu saatte girebilir mi?
+session	Giriş sırasında/sonrasında yapılacak işler (log tutma, dizin bağlama)
+password	Şifre değiştirme işlemi ve şifre kuralları
+Bizim satırımız password grubunda, çünkü şifre değiştirilirken çalışıyor.
+
+pam_pwquality ne yapar?
+pam_pwquality, PAM’in password grubunda çalışan bir modüldür. Birisi passwd ile yeni şifre belirlediğinde, şifre kaydedilmeden önce devreye girer ve kalitesini ölçer: uzunluk, karakter çeşitliliği, tekrar, kullanıcı adı içerme, eski şifreye benzerlik. Kurallardan biri bile sağlanmazsa şifreyi reddeder ve retry hakkı kadar tekrar sordurur.
+
+Bir de sözlük kontrolü yapar: şifre yaygın bir kelimeyse (password, qwerty) onu da reddedebilir.
+
+
+
+
+
+
+
+
+
+
+
+Adım 1: İskeleti kur
+￼
+
+nano /usr/local/bin/monitoring.sh
+chmod +x /usr/local/bin/monitoring.sh
+
+root@haincel42:~# uname -a
+Linux haincel42 6.12.118+deb13-amd64 #1 SMP PREEMPT_DYNAMIC Debian 6.12.118-1 (2026-11-20) x86_64 GNU/Linux
+root@haincel42:~# 
+if [ $lvm -gt 0 ]; then
+    lvm_status="yes"
+else
+    lvm_status="no"
+fi
+-gt “greater than” (büyüktür) demek.
+
+awk nedir?
+awk, metin çıktısını satır satır okuyup sütunlara bölen ve istersen üzerinde hesap yapabilen küçük bir programlama aracıdır. Linux komutlarının çıktısı çoğunlukla “tablo gibi” metindir. awk bu tablodan istediğin sütunu çekmeni sağlar.
+
+Temel mantık
+awk her satırı boşluklardan keserek parçalara ayırır ve bunlara isim verir:
+
+$1 → 1. sütun
+$2 → 2. sütun
+$3 → 3. sütun
+$0 → satırın tamamı
+Yazım şekli:
+
+￼
+
+awk '/desen/ {yapılacak iş}'
+/desen/: “bu kelimeyi içeren satırlarda çalış”
+{ ... }: o satırda ne yapılacağı
+Senin kullandığın satır
+￼
+
+bash
+free -m | awk '/Mem:/ {print $3}'
+
+Neden shell’de değil de awk’ta hesaplıyoruz? Çünkü bash ondalıklı sayı bölmeyi bilmez (280/987 bash’te 0 verir, tam sayı bölmesi yapar). awk ondalıklı hesabı yapabilir.
+
+cpuinfo proc/
+Her mantıksal işlemci (vCPU) için ayrı bir blok vardır. Bloklar boş satırla ayrılır. Önemli alanlar:
+
+Alan	Anlamı
+processor	İşlemcinin sıra numarası (0, 1, 2...)
+vendor_id	Üretici (GenuineIntel, AuthenticAMD)
+model name	CPU’nun adı (Intel Core i5-... gibi)
+cpu MHz	Anlık saat hızı
+cache size	Önbellek boyutu
+physical id	Bu çekirdeğin bağlı olduğu fiziksel işlemci (soket) numarası
+siblings	Aynı fiziksel işlemcideki toplam mantıksal işlemci sayısı
+core id	Fiziksel işlemci içindeki çekirdek numarası
+cpu cores	Fiziksel işlemcideki çekirdek sayısı
+flags	CPU’nun desteklediği özellikler (uzun bir liste)
+
+
+lscpu:
+Kernel (çekirdek) nedir?
+Kernel, işletim sisteminin en alttaki, donanımla doğrudan konuşan çekirdek parçasıdır. Programlar (tarayıcı, bash, ssh) donanıma (CPU, RAM, disk, ağ kartı) doğrudan dokunamaz. Hepsi kernel’den ister, kernel yapar.
+
+￼
+
+Programlar (bash, ssh, monitoring.sh)
+        |
+     KERNEL      <- CPU, RAM, disk, ağ yönetimi burada
+        |
+Donanım (CPU, RAM, disk, ağ kartı)
+Kernel’in işleri: hangi program ne zaman CPU kullanacak, RAM kime ne kadar verilecek, dosyalar diskte nasıl durur, ağ paketleri nereye gidecek. Senin ekranında görünen Linux haincel42 6.12.118+deb13-amd64 satırındaki 6.12.118, kernel’in sürümü.
+
+Kernel sistemde olup biten her şeyi bilir: kaç CPU var, RAM’in ne kadarı dolu, hangi süreçler çalışıyor. Sorun şu: bu bilgiyi programlara nasıl sunar?
+
+/proc neden var?
+Kernel’in elindeki bilgiyi programlara göstermesi için bir yol lazım. Linux’un felsefesi şu: “Her şey bir dosyadır.” Yani özel bir komut ya da özel bir iletişim yöntemi icat etmek yerine, bilgiyi dosya gibi sunar. Böylece cat, grep, awk gibi zaten bildiğin araçlarla okuyabilirsin.
+
+/proc (process information, süreç bilgisi) bu amaçla var. İçinde şunlar bulunur:
+
+Dosya	İçerik
+/proc/cpuinfo	CPU bilgisi
+/proc/meminfo	RAM bilgisi
+/proc/uptime	Sistem ne kadardır açık
+/proc/1234/	PID’si 1234 olan sürecin bilgileri
+free komutu aslında /proc/meminfo dosyasını okuyup düzenli bir tabloya çevirir. Yani senin kullandığın birçok komut arka planda /proc’a bakıyor.
+
+Neden “sanal” dosya? Neden diskte durmaz?
+Çünkü bu bilgiler sürekli değişir ve zaten kernel’in bellekte tuttuğu bilgilerdir.
+
+RAM’in ne kadar dolu olduğu her saniye değişir.
+CPU’nun anlık MHz’i değişir.
+Çalışan süreçler açılıp kapanır.
+Bunları diske yazıp güncel tutmak hem anlamsız hem yavaş olurdu. Üstelik sistem kapanınca bu bilgilerin hiçbir değeri kalmaz.
+
+Bunu sen kendin kanıtlayabilirsin:
+
+ls -l /proc/cpuinfo
+Boyutu 0 görürsün. Dosya boş görünür ama cat yapınca dolu gelir. Çünkü içerik diskte değil, okuma anında üretiliyor.
+
+Neden kernel “o anda” üretiyor?
+Sen cat /proc/cpuinfo yazdığında şunlar olur:
+
+cat, dosyayı açıp okumak ister, kernel’e “bu dosyanın içeriğini ver” der.
+Kernel normalde diskten okurdu. Ama /proc bir diske bağlı değil, kernel’in kendi kodu burayı yönetiyor.
+Kernel o anda donanımdan ve kendi bellek kayıtlarından bilgiyi toplar, metne çevirir ve cat’e verir.
+Bir saniye sonra tekrar cat yaparsan güncel bilgi gelir.
+Yani /proc bir pencere gibidir: arkasında depolanmış bir dosya yok, kernel sana o anda baktığı manzarayı gösteriyor.
+Aynı mantıkla free her çalıştığında güncel değeri verir.
+
+lscpu nedir?
+lscpu (list CPU) CPU bilgisini okunaklı bir özet olarak veren bir komuttur. Arka planda /proc/cpuinfo ve benzer kaynakları okuyup düzenler.
+
+Dene:
+
+￼
+
+lscpu
+Şunlara benzer satırlar göreceksin:
+
+￼
+
+Architecture:        x86_64
+CPU(s):              1
+Socket(s):           1
+Core(s) per socket:  1
+Thread(s) per core:  1
+Model name:          Intel(R) Core(TM) ...
+CPU(s) → mantıksal işlemci sayısı (vCPU)
+Socket(s) → fiziksel işlemci (soket) sayısı
+cpuinfo ham ve uzun, lscpu özet. Fiziksel CPU sayısı için physical id bazen VM’de gelmediğinden lscpu’daki Socket(s) satırı işini görebilir. Bu satırı grep ve awk ile çekebilirsin.
+
+Özet
+Kernel: donanımı yöneten çekirdek.
+/proc: kernel’in bilgiyi dosya gibi sunduğu sanal klasör.
+Sanal: diskte değil, okuma anında kernel tarafından üretiliyor.
+lscpu: aynı bilgiyi düzenli gösteren komut.
+
+
+Fiziksel CPU ve vCPU nedir?
+Fiziksel CPU (soket)
+Anakartın üzerindeki gerçek işlemci çipi. Bir bilgisayarda genelde 1 tane olur, sunucularda 2 veya 4 olabilir. Bir çipin içinde birden fazla çekirdek (core) bulunabilir.
+
+vCPU (sanal / mantıksal işlemci)
+İşletim sisteminin kullanabildiği işlemci sayısı. Kernel her çekirdeği (ya da hyper-threading varsa her thread’i) ayrı bir işlemci olarak görür. VM’de VirtualBox’ın VM’e verdiği işlemci sayısı budur.
+
+Benzetme: Fiziksel CPU bir fabrika binası, çekirdekler içindeki işçiler, vCPU da işletim sisteminin saydığı “aynı anda çalışabilen iş kolu” sayısı.
+
+Senin VM’inde büyük ihtimalle: 1 fiziksel CPU, 1 vCPU (VirtualBox’ta VM’e kaç işlemci verdiğine bağlı, 2 verdiysen vCPU 2 çıkar).
+
+
+
+#!/bin/bash
+
+export LC_ALL=C   # çıktılar Türkçe değil İngilizce olsun (grep/awk bozulmasın)
+
+arch=$(uname -a)
+
+cpu_phys=$(grep "physical id" /proc/cpuinfo | sort -u | wc -l)
+[ "$cpu_phys" -eq 0 ] && cpu_phys=$(lscpu | awk '/^Socket\(s\):/ {print $2}')
+cpu_virt=$(grep -c "^processor" /proc/cpuinfo)
+
+ram_used=$(free -m | awk '/Mem:/ {print $3}')
+ram_total=$(free -m | awk '/Mem:/ {print $2}')
+ram_pct=$(free -m | awk '/Mem:/ {printf("%.2f", $3/$2*100)}')
+
+disk_used=$(df -m | awk '/^\/dev\// {u+=$3} END {print u}')
+disk_total=$(df -m | awk '/^\/dev\// {t+=$2} END {printf("%.1f", t/1024)}')
+disk_pct=$(df -m | awk '/^\/dev\// {u+=$3; t+=$2} END {printf("%d", u/t*100)}')
+
+cpu_load=$(vmstat 1 2 | tail -1 | awk '{printf("%.1f", 100-$15)}')
+
+last_boot=$(uptime -s | cut -c1-16)
+
+if [ "$(lsblk | grep -c lvm)" -gt 0 ]; then lvm="yes"; else lvm="no"; fi
+
+tcp=$(ss -Htn state established | wc -l)
+users=$(who | wc -l)
+
+ip=$(hostname -I | awk '{print $1}')
+mac=$(ip link | awk '/link\/ether/ {print $2; exit}')
+
+sudo_cmd=$(journalctl _COMM=sudo 2>/dev/null | grep -c COMMAND)
+
+wall << EOF
+	#Architecture: $arch
+	#Physical CPU: $cpu_phys
+	#vCPU: $cpu_virt
+	#Memory Usage: $ram_used/${ram_total}MB ($ram_pct%)
+	#Disk Usage: $disk_used/${disk_total}Gb ($disk_pct%)
+	#CPU load: $cpu_load%
+	#Last boot: $last_boot
+	#LVM use: $lvm
+	#TCP Connections: $tcp ESTABLISHED
+	#User log: $users
+	#Network: IP $ip ($mac)
+	#Sudo: $sudo_cmd cmd
+EOF
+
+
+Anlaman gereken yerler
+export LC_ALL=C: Sistemin Türkçe olması yüzünden lscpu, who gibi komutların etiketleri değişir. Bu satır hepsini İngilizce yapar.
+Fiziksel CPU satırı: physical id yoksa sonuç 0 çıkar. Bu durumda lscpu’daki Socket(s) değerine düşüyoruz. [ ... ] &&
+komut ifadesi “koşul doğruysa komutu çalıştır” demek.
+Disk: Sadece /dev/ ile başlayan satırları (gerçek bölümler) topluyoruz. tmpfs gibi sanal olanları saymıyoruz. u+=$3 her satırı toplar,
+END satırlar bitince çalışır.
+CPU yükü: vmstat 1 2 iki ölçüm alır. İlki açılıştan beri ortalamadır, ikincisi son 1 saniyedir, o yüzden tail -1. $15 boşta (idle) yüzdesidir,
+100-idle kullanım olur.
+uptime -s: Son açılış zamanını 2026-11-25 10:00:12 biçiminde verir, cut saniyeyi atar.
+ss -Htn state established: -H başlık satırını gizler, böylece wc -l doğru sayar.
+Sudo sayısı: journalctl içindeki COMMAND satırlarını sayar. Bazı kurulumlarda sudo’yu /var/log/sudo/ altına yazdırdığın için çalışmayabilir,
+0 çıkarsa söyle, o dosyaya göre uyarlarız.
+wall << EOF: İki EOF arasındaki metni wall’a verir, o da tüm terminallere basar. Satır başlarındaki boşluk Tab olmalı. Eğer wall banner’ı (başlık)
+istemiyorsan wall -n kullanabilirsin.
+
+wall (write all), o an açık olan bütün terminallere aynı mesajı yollayan bir komuttur. Bir sunucuda “5 dakika sonra kapanacak” diye herkese duyuru yapmak için kullanılır.
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

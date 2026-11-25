@@ -1,0 +1,173 @@
+head -n 2 /etc/os-release 
+haincel@haincel42:~$ head -n 2 /etc/os-release
+PRETTY_NAME="Debian GNU/Linux 13 (trixie)"
+NAME="Debian GNU/Linux"
+
+root@haincel42:~# aa-status | head -n 3
+apparmor module is loaded.
+105 profiles are loaded.
+6 profiles are in enforce mode.
+root@haincel42:~# 
+
+root@haincel42:~# lsblk  
+NAME                    MAJ:MIN RM  SIZE RO TYPE  MOUNTPOINTS
+sda                       8:0    0   30G  0 disk
+├─sda1                    8:1    0  476M  0 part  /boot
+├─sda2                    8:2    0    1K  0 part
+└─sda5                    8:5    0 29,5G  0 part
+  └─sda5_crypt          254:0    0 29,5G  0 crypt
+    ├─LVMGroup-root     254:1    0   10G  0 lvm   /
+    ├─LVMGroup-swap     254:2    0  2,3G  0 lvm   [SWAP]
+    ├─LVMGroup-home     254:3    0    5G  0 lvm   /home
+    ├─LVMGroup-var      254:4    0    3G  0 lvm   /var
+    ├─LVMGroup-srv      254:5    0    3G  0 lvm   /srv
+    ├─LVMGroup-tmp      254:6    0    3G  0 lvm   /tmp
+    └─LVMGroup-var--log 254:7    0  1,9G  0 lvm   /var/log
+sr0                      11:0    1 1024M  1 rom
+root@haincel42:~#
+
+root@haincel42:~# sshd -T | grep -Ei "^(port|permitrootlogin)"
+port 4242
+permitrootlogin no
+root@haincel42:~#
+
+root@haincel42:~# ufw status verbose
+Status: active
+Logging: on (low)
+Default: deny (incoming), allow (outgoing), disabled (routed)
+New profiles: skip
+
+To                         Action      From
+--                         ------      ----
+4242                       ALLOW IN    Anywhere
+4242 (v6)                  ALLOW IN    Anywhere (v6)
+
+root@haincel42:~#
+
+root@haincel42:~# hostname
+haincel42
+root@haincel42:~#
+
+root@haincel42:~# id haincel
+uid=1000(haincel) gid=1000(haincel) gruplar=1000(haincel),24(cdrom),25(floppy),27(sudo),29(audio),30(dip),44(video),46(plugdev),100(users),101(netdev),103(bluetooth),1001(user42)
+root@haincel42:~# whoami
+root
+root@haincel42:~# groups haincel
+haincel : haincel cdrom floppy sudo audio dip video plugdev users netdev bluetooth user42
+root@haincel42:~#
+
+root@haincel42:~# chage -l haincel
+Son Parola Değişimi                                     : Kas 25, 2026
+Parola Kullanım Süresi Dolumu                                   : Ara 25, 2026
+Parola Pasif                                    : Hiçbir zaman
+Hesap Bitimi                                            : Hiçbir zaman
+Şifre değişiklikleri arasındaki en az gün sayısı                : 2
+Maksimum giriş denemesi sayısı aşıldı           : 30
+Şifre süresinin dolumundan önceki uyarı gün sayısı      : 7
+root@haincel42:~# chage -l root
+Son Parola Değişimi                                     : Kas 25, 2026
+Parola Kullanım Süresi Dolumu                                   : Ara 25, 2026
+Parola Pasif                                    : Hiçbir zaman
+Hesap Bitimi                                            : Hiçbir zaman
+Şifre değişiklikleri arasındaki en az gün sayısı                : 2
+Maksimum giriş denemesi sayısı aşıldı           : 30
+Şifre süresinin dolumundan önceki uyarı gün sayısı      : 7
+root@haincel42:~#
+
+root@haincel42:~# grep pwquality /etc/pam.d/common-password
+password        requisite                       pam_pwquality.so retry=3 minlen=10 ucredit=-1 lcredit=-1 dcredit=-1 maxrepeat=3 reject_username difok=7 enforce_for_root
+root@haincel42:~#
+
+visudo
+Defaults        env_reset
+Defaults        mail_badpass
+Defaults        secure_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin"
+Defaults        passwd_tries=3
+Defaults        badpass_message="wrong password bro"
+Defaults        logfile="/var/log/sudo/sudo_config"
+Defaults        log_input, log_output
+Defaults        iolog_dir="/var/log/sudo"
+Defaults        requiretty
+
+root@haincel42:~# systemctl is-enabled cron ufw ssh
+enabled
+enabled
+enabled
+root@haincel42:~#
+
+root@haincel42:~# systemctl is-enabled apparmor
+enabled
+root@haincel42:~#
+
+crontab -e
+@reboot sleep 10 && /usr/local/bin/monitoring.sh
+*/10 * * * * sleep $(uptime -s | awk -F: '{print $2\%10*60+$3}') && /usr/local/bin/monitoring.sh
+
+root@haincel42:~# cat /usr/local/bin/monitoring.sh
+#!/bin/bash
+
+export LC_ALL=C   # çıktılar Türkçe değil İngilizce olsun (grep/awk bozulmasın)
+
+arch=$(uname -a)
+
+cpu_phys=$(grep "physical id" /proc/cpuinfo | sort -u | wc -l)
+[ "$cpu_phys" -eq 0 ] && cpu_phys=$(lscpu | awk '/^Socket\(s\):/ {print $2}')
+cpu_virt=$(grep -c "^processor" /proc/cpuinfo)
+
+ram_used=$(free -m | awk '/Mem:/ {print $3}')
+ram_total=$(free -m | awk '/Mem:/ {print $2}')
+ram_pct=$(free -m | awk '/Mem:/ {printf("%.2f", $3/$2*100)}')
+
+disk_used=$(df -m | awk '/^\/dev\// {u+=$3} END {print u}')
+disk_total=$(df -m | awk '/^\/dev\// {t+=$2} END {printf("%.1f", t/1024)}')
+disk_pct=$(df -m | awk '/^\/dev\// {u+=$3; t+=$2} END {printf("%d", u/t*100)}')
+
+cpu_load=$(vmstat 1 2 | tail -1 | awk '{printf("%.1f", 100-$15)}')
+
+last_boot=$(uptime -s | cut -c1-16)
+
+if [ "$(lsblk | grep -c lvm)" -gt 0 ]; then lvm="yes"; else lvm="no"; fi
+
+tcp=$(ss -Htn state established | wc -l)
+users=$(who | wc -l)
+
+ip=$(hostname -I | awk '{print $1}')
+mac=$(ip link | awk '/link\/ether/ {print $2; exit}')
+
+sudo_cmd=$(grep -c "COMMAND" /var/log/sudo/sudo_config)
+
+wall << EOF
+        #Architecture: $arch
+        #Physical CPU: $cpu_phys
+        #vCPU: $cpu_virt
+        #Memory Usage: $ram_used/${ram_total}MB ($ram_pct%)
+        #Disk Usage: $disk_used/${disk_total}Gb ($disk_pct%)
+        #CPU load: $cpu_load%
+        #Last boot: $last_boot
+        #LVM use: $lvm
+        #TCP Connections: $tcp ESTABLISHED
+        #User log: $users
+        #Network: IP $ip ($mac)
+        #Sudo: $sudo_cmd cmd
+EOF
+
+4242 portu kapalı:
+k0m04s01% ss -tulnp | grep 4242
+tcp   LISTEN 0      5           127.0.0.1:4242       0.0.0.0:*
+k0m04s01% 
+
+grafical user interface yok
+systemctl get-default
+dpkg -l | grep -Ei 'xorg|wayland'
+İlki multi-user.target vermeli, ikincisi boş dönmeli.
+
+root@haincel42:~# cat /etc/login.defs | grep PASS_MAX_DAYS
+#       PASS_MAX_DAYS   Maximum number of days a password may be used.
+PASS_MAX_DAYS   30
+root@haincel42:~# cat /etc/login.defs | grep PASS_WARN_AGE
+#       PASS_WARN_AGE   Number of days warning given before a password expires.
+PASS_WARN_AGE   7
+root@haincel42:~# cat /etc/login.defs | grep PASS_MIN_DAYS
+#       PASS_MIN_DAYS   Minimum number of days allowed between password changes.
+PASS_MIN_DAYS   2
+root@haincel42:~# 

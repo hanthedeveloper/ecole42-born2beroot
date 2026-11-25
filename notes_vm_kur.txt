@@ -5,11 +5,6 @@ gösteririz.
 VM açılınca bu “diskten” boot eder ve Debian kurulum ekranı gelir. Kurulum bitince ISO’ya ihtiyacın
 kalmaz.
 
-3. “Proceed with Unattended Installation” nedir?
-Seçseydin: VirtualBox sana dil, kullanıcı adı, şifre, hostname sorar. Sonra kurulumu kendisi, hiçbir şey
-sormadan, hazır varsayılanlarla yapardı. Bölümleme otomatik olurdu, yani düz disk, şifreleme yok, LVM yok.
-Üstüne grafik arayüz de kurabilirdi. Projede bunların hepsi yasak ya da yanlış.
-
 EFI (UEFI), bilgisayarın açılırken işletim sistemini bulup başlatan firmware’in modern halidir. 
 Eski olanın adı BIOS.
 İkisi de aynı işi yapar: bilgisayarı açınca diskteki sistemi bulup yükler. Fark, diski nasıl okudukları:
@@ -69,199 +64,48 @@ Birden fazla fiziksel diski birleştirip tek disk gibi kullanma yöntemi. İki a
 veri kaybolmasın (yedeklilik), ya da hız artsın. Örneğin RAID 1'de iki diske aynı veri yazılır.
 Senin tek diskin var, RAID için en az iki disk gerekir, subject de istemiyor.
 
-LVM’i adım adım anlatayım
-Normal bölümlemede her bölümün boyutu başta sabitlenir.
-/home dolarsa ve yanındaki /var yarı boşsa, aradaki alanı kolayca aktaramazsın.
-Bölümler diskte yan yana dizildiği için birini büyütmek komşusunu küçültmeyi gerektirir.
-LVM bu sabitliği ortadan kaldırmak için araya bir soyutlama katmanı koyar.
-Dosya sistemleri gerçek disk bölümlerine değil, LVM’in sunduğu esnek parçalara kurulur.
-
-Üç katman
-Bir benzetme: PV tuğla, VG depo, LV o depodan kestiğin raflar.
-
-Gerçek dünya                            LVM dünyası
-
-sda5_crypt  ──►  PV  ──┐
-                       ├──►  VG (LVMGroup)  ──►  LV root     → /
-(ileride bir disk        │      (tek büyük         LV swap     → [SWAP]
- daha eklesen)  ──► PV ──┘       havuz)            LV home     → /home
-                                                   LV var      → /var
-                                                   LV srv      → /srv
-                                                   LV tmp      → /tmp
-                                                   LV var-log  → /var/log
-1. Physical Volume (PV, fiziksel cilt)
-LVM’in ham maddesi. Bir disk, bir bölüm ya da senin durumunda şifresi açılmış sda5_crypt aygıtı olabilir.
-Bir aygıtı “LVM için fiziksel cilt” olarak işaretlediğinde LVM onun başına kendi etiketini ve bilgilerini
-yazar ve onu kullanılabilir bir parça olarak tanır.
-2. Volume Group (VG, cilt grubu)
-Bir ya da daha fazla PV’nin birleştirilmesiyle oluşan tek büyük depolama havuzu. Havuzun ismini sen
-verirsin (bonus örneğinde LVMGroup). Havuzun toplam boyutu, içindeki PV’lerin toplamıdır.
-Senin durumunda tek PV var, yani VG yaklaşık 31 GB.
-3. Logical Volume (LV, mantıksal cilt)
-Havuzdan istediğin boyutta kestiğin parçalar. Dosya sistemi (ext4) ve bağlama noktası (/, /home...)
-bunların üzerine kurulur. İşletim sistemi LV’yi normal bir disk bölümü gibi görür. Fiziksel olarak
-parçaların diskte nerede durduğunu bilmesine gerek yok.
-Avantajları
-Boyut değiştirme: /home dolarsa havuzda boş alan varsa lvextend ile büyütürsün, hatta sistem çalışırken
-(ext4'te resize2fs ile) yapabilirsin. Küçültmek de mümkün ama bölümü önce unmount etmen gerekir.
-Havuz mantığı: Başlangıçta LV’lerin toplamını havuzun tamamına eşitlemek zorunda değilsin. Boş alanı
-sonradan ihtiyaç duyan LV’ye verirsin.
-Disk ekleme: Yeni bir disk takarsan onu PV yapıp VG’ye katarsın, havuz büyür.
-Ayrı yönetim: Her LV bağımsız dosya sistemidir. Biri dolsa diğerleri etkilenmez.
-Savunmada sorulabilecek komutlar:
-lsblk : hepsini ağaç olarak gösterir.
-sudo pvs / sudo vgs / sudo lvs : PV, VG, LV’lerin özet listesi.
-sudo pvdisplay, vgdisplay, lvdisplay : detaylı bilgi.
-Neden LVM, şifrelemenin içinde?
-Sıra şöyle:
-sda5  →  şifreleme (dm-crypt)  →  sda5_crypt  →  LVM  →  LV'ler
-Bu şekilde tek parola ile tüm LV’ler (root, home, var, swap dahil) birden açılır.
-Tersini yapsaydın, yani LVM’i önce kurup her LV’yi ayrı şifrelemek zorunda kalsaydın,
-her biri için ayrı parola ve ayrı ayar gerekirdi. Ayrıca LVM’in kendi yapısı (hangi LV’nin hangi boyutta
-olduğu) da dışarıdan görünür olurdu. Şifreli katmanın içinde olunca dışarıdan bakan biri sadece anlamsız
-rastgele veri görür.
-
-Neden sda1 şifrelenmiyor, sda5 şifreleniyor?
-Bilgisayarın açılış sırası, bu sorunun cevabını verir:
-
-BIOS diskin başındaki bölümleme tablosuna ve önyükleyiciye (GRUB) bakar.
-GRUB çalışır ve /boot bölümünden kernel (vmlinuz) ile initramfs dosyalarını okuyup belleğe yükler.
-Kernel başlar, initramfs içindeki geçici araçlarla parolayı sorar.
-Parola doğruysa sda5 açılır ve sda5_crypt oluşur.
-LVM etkinleşir, LV’ler bulunur, / bağlanır ve sistem normal şekilde ayağa kalkar.
-Dikkat edersen 2. adımda henüz hiçbir şifre açılmamış durumda. GRUB ve kernel’in okunabilmesi için
-/boot şifresiz olmak zorunda. Şifreyi soran yazılım (initramfs) bile /boot içinde duruyor. /boot şifreli
-olsaydı, o şifreyi soracak yazılımı yükleyemezdin.
-
-Bölüm	İçerik	Şifreli mi	Neden
-sda1	Kernel, initramfs, GRUB dosyaları	Hayır	Şifre sorulmadan önce okunması gerekiyor. Kişisel
-veri içermez.
-sda5	Sistem, kullanıcı verisi, loglar, swap	Evet	Asıl korunması gereken her şey burada.
-Savunmada kısaca şöyle söyleyebilirsin: “/boot şifrelenemez çünkü önyükleyici ve kernel, şifre çözülmeden
-önce okunmak zorunda. Hassas veriler ise şifreli LVM’in içinde.”
-
-Neden sda1'i şifrelemiyoruz?
-Bilgisayar açılırken önce GRUB (önyükleyici) çalışır ve /boot içindeki kernel ile initramfs dosyalarını okur. Şifreli bölümü açacak parolayı ancak bu dosyalar yüklendikten sonra sorabilir. /boot da şifreli olsaydı, onu açmak için gereken yazılıma ulaşılamazdı. Bu yüzden /boot şifresiz kalır, geri kalan her şey şifreli LVM’in içine konur.
-
-Neden numara 5?
-Diskte MBR (msdos) bölüm tablosu kullandığın için en fazla 4 birincil bölüm olabilir ve numaraları 1-4'tür. Mantıksal (logical) bölümler her zaman 5'ten başlar. Bu yüzden ikinci bölümü mantıksal açınca sda5 oldu. Subject’teki lsblk çıktısında da aynı numaralandırma var.
-
-sda2 nerede?
-Mantıksal bölüm açtığında kurulum, onları içine alan bir genişletilmiş (extended) bölümü otomatik olarak sda2 adıyla oluşturur. Subject’in örneğindeki 1K boyutlu sda2 bu. İçinde veri tutmaz, sadece mantıksal bölümler için bir kap görevi görür. Ona dokunmayacaksın.
-
-Bölüm	Tür	İçerik	Şifreli mi?
-sda1	Birincil	/boot	Hayır
-sda2	Genişletilmiş	Kap (1K)	Veri yok
-sda5	Mantıksal	Şifreli LVM	Evet
-
-Şunu söylediniz: kac tane sda var ve her bırı ne ıs yapıyor
-kac tane sda var ve her bırı ne ıs yapıyor
-
-Claude yanıt verdi: Aslında sda tek bir tane, o senin 32.2 GB'lık sanal diskin.
-Disk and partition layout explained.
-Disk and partition layout explained.
-Aslında sda tek bir tane, o senin 32.2 GB’lık sanal diskin. sda1, sda2, sda5 ise o diskin içindeki bölümler. Bonus yapısını kurduğunda lsblk çıktısı şöyle bir hiyerarşi gösterir:
-
-sda                    ← disk (tamamı)
-├─sda1                 ← /boot
-├─sda2                 ← genişletilmiş bölüm (kap)
-└─sda5                 ← şifreli bölüm
-  └─sda5_crypt         ← şifre açılmış sanal aygıt
-    ├─LVMGroup-root    ← /
-    ├─LVMGroup-swap    ← [SWAP]
-    ├─LVMGroup-home    ← /home
-    ├─LVMGroup-var     ← /var
-    ├─LVMGroup-srv     ← /srv
-    ├─LVMGroup-tmp     ← /tmp
-    └─LVMGroup-var--log ← /var/log
-
-Disk ve bölümler
-
-Ad	Ne işe yarar
-sda	Fiziksel (sanal) diskin kendisi.
-sda1	/boot. Kernel ve önyükleme dosyaları burada, şifresiz.
-sda2	Genişletilmiş bölüm. Sadece mantıksal bölümleri içinde tutan boş kap, veri içermez.
-sda5	Mantıksal bölüm. Şifrelenen ham alan. Ham haliyle okunduğunda anlamsız veri görünür.
-sda5_crypt	sda5’in parolayla açılmış hali. LVM bunun üstüne kurulur.
-LVM’in içindeki logical volume’ler
-
-Ad	Bağlama noktası	Ne işe yarar
-root	/	Sistemin ana dosyaları, programlar, ayarlar.
-swap	[SWAP]	RAM dolunca kullanılan takas alanı. Genelde RAM kadar ya da biraz fazlası.
-home	/home	Kullanıcıların kişisel dosyaları.
-var	/var	Değişen veriler: paket önbelleği, veritabanları, web sitesi verisi.
-srv	/srv	Sunucunun sunduğu servislerin verisi (bonusta web sitesi gibi).
-tmp	/tmp	Geçici dosyalar.
-var-log	/var/log	Log dosyaları. Subject’teki sudo logları (/var/log/sudo/) da burada durur.
-Neden bu kadar ayırıyoruz?
-Bir bölüm dolsa bile diğerleri çalışmaya devam eder. Örneğin loglar şişip /var/log’u doldurursa sistem
-(/) bozulmaz. /tmp ayrı olunca da oraya yanlışlıkla çok veri yazan bir program tüm diski dolduramaz.
-
-Not: lsblk çıktısında bir de sr0 görürsün. O sanal CD/DVD sürücüsü, kurulum ISO’sunu takmış olmandan
-geliyor, diskle ilgisi yok.
-
-Bu parola, sda5’i şifreleyen anahtarı korumak için isteniyor. Şifrelemenin çalışması için bir sırra
-ihtiyaç var. Parola olmasa diske fiziksel olarak ulaşan biri (sanal disk dosyasını kopyalayan,
-bilgisayarı çalan) her şeyi okuyabilirdi, şifrelemenin bir anlamı kalmazdı.
-
-Nasıl çalışıyor?
-
-Disk, rastgele üretilmiş bir ana anahtarla (master key) şifreleniyor. Bu anahtar diskin başındaki LUKS
-başlığında duruyor ama kendisi de şifreli.
-Senin yazdığın parola bu ana anahtarı açıyor. Yani parola verinin kendisini değil, veriyi açan anahtarı
-koruyor.
-Parola doğru girilirse sda5_crypt oluşur, LVM etkinleşir, sistem açılır. Yanlışsa sda5 anlamsız rastgele
-veri olarak kalır.
-
-grubu buraya sectık neden?
-Aygıt                       Ne görünür?
-/dev/sda5                   Diskteki ham, şifreli veri. İçi okunamayan rastgele bayt yığını.
-/dev/mapper/sda5_crypt      sda5’in parolayla açılmış hali. Yazdığın veri otomatik şifrelenip
-sda5’e gider, okuduğun veri otomatik çözülür.
-
-
-
 Dosya sistemleri
 Ext4 günlüklü dosya sistemi
-Linux’un standart, en yaygın dosya sistemi. Günlükleme (journaling) sayesinde elektrik kesilirse ya da sistem çökerse dosya sistemi bozulmaz, kaldığı yerden toparlanır. Hızlı, kararlı, Debian’ın varsayılanı. Born2beRoot için root, home, var, srv, tmp ve var-log’da bunu kullan.
+Linux’un standart, en yaygın dosya sistemi. Günlükleme (journaling) sayesinde elektrik kesilirse
+ya da sistem çökerse dosya sistemi bozulmaz, kaldığı yerden toparlanır. Hızlı, kararlı, Debian’ın varsayılanı.
+Born2beRoot için root, home, var, srv, tmp ve var-log’da bunu kullan.
 
 Ext3 günlüklü dosya sistemi
-Ext4'ün eski sürümü. Günlüklemesi var ama daha yavaş ve daha küçük dosya/bölüm sınırları var. Artık yeni kurulumda tercih edilmez.
+Ext4'ün eski sürümü. Günlüklemesi var ama daha yavaş ve daha küçük dosya/bölüm sınırları var. Artık yeni
+kurulumda tercih edilmez.
 
 Ext2 dosya sistemi
-Günlüklemesi yok. Daha basit ve diske daha az yazar. Eskiden /boot için yaygındı. Bugün /boot için de Ext4 kullanılabilir. Subject’teki örnekte /boot için ikisi de olur.
+Günlüklemesi yok. Daha basit ve diske daha az yazar. Eskiden /boot için yaygındı. Bugün /boot için de Ext4
+kullanılabilir. Subject’teki örnekte /boot için ikisi de olur.
 
 btrfs günlüklü dosya sistemi
-Modern bir dosya sistemi: snapshot, sıkıştırma, birleşik disk yönetimi gibi gelişmiş özellikleri var. Bu projede gereksiz, ayrıca LVM ile birlikte karmaşıklık katar. Kullanma.
+Modern bir dosya sistemi: snapshot, sıkıştırma, birleşik disk yönetimi gibi gelişmiş özellikleri var. Bu
+projede gereksiz, ayrıca LVM ile birlikte karmaşıklık katar. Kullanma.
 
 JFS günlüklü dosya sistemi
 IBM’in geliştirdiği günlüklü dosya sistemi. Düşük CPU kullanımı ile bilinir ama pek yaygın değil. Kullanma.
 
 XFS günlüklü dosya sistemi
-Büyük dosyalar ve yüksek performans için tasarlanmış, sunucularda yaygın (Rocky/RHEL’in varsayılanı). Debian’da da çalışır ama bu proje için Ext4 yeterli ve daha basit. Bir özelliği: XFS’i küçültemezsin, sadece büyütebilirsin.
+Büyük dosyalar ve yüksek performans için tasarlanmış, sunucularda yaygın (Rocky/RHEL’in varsayılanı).
+Debian’da da çalışır ama bu proje için Ext4 yeterli ve daha basit. Bir özelliği: XFS’i küçültemezsin, sadece
+büyütebilirsin.
 
 FAT16 / FAT32 dosya sistemi
-Windows/USB bellekler ve UEFI boot bölümü (ESP) için kullanılan eski, basit sistemler. Linux izinlerini (sahip, yetki) desteklemez. Bu projede kullanılmaz.
+Windows/USB bellekler ve UEFI boot bölümü (ESP) için kullanılan eski, basit sistemler. Linux izinlerini
+(sahip, yetki) desteklemez. Bu projede kullanılmaz.
 
-Roller
 takas alanı (swap)
-Dosya sistemi değil, RAM dolduğunda sistemin diski geçici bellek gibi kullanmasını sağlayan alan. Swap LV’si için bunu seç. Mount point sorulmaz.
+Dosya sistemi değil, RAM dolduğunda sistemin diski geçici bellek gibi kullanmasını sağlayan alan. Swap LV’si
+için bunu seç. Mount point sorulmaz.
 
 şifreleme için fiziksel cilt
-Bölümü LUKS ile şifrelenmiş bir “fiziksel cilt” yapar. sda5 için bunu zaten kullandın, o yüzden LV’lerde seçmeyeceksin.
-
-Senin için özet
-Bölüm	Seçim
-sda1 (/boot)	Ext4 (Ext2 de olur)
-sda5	şifreleme için fiziksel cilt (zaten yaptın)
-root, home, var, srv, tmp, var-log	Ext4
-swap	takas alanı
-
+Bölümü LUKS ile şifrelenmiş bir “fiziksel cilt” yapar. sda5 için bunu zaten kullandın, o yüzden LV’lerde
+seçmeyeceksin.
 
 Masaüstü ortamları (hiçbirini seçme)
-Bunların hepsi grafik arayüz getirir ve altyapı olarak X.org ya da Wayland kurar. Subject’e göre bunlardan biri bile kurulursa notun 0 olur.
+Bunların hepsi grafik arayüz getirir ve altyapı olarak X.org ya da Wayland kurar. Subject’e göre bunlardan
+biri bile kurulursa notun 0 olur.
 
-Seçenek	Ne olduğu
 Debian desktop environment	Debian’ın varsayılan masaüstü paketi, genelde GNOME’u kurar
 GNOME	Modern, sade, ağır bir masaüstü
 Xfce	Hafif ve hızlı masaüstü
@@ -273,12 +117,14 @@ LXDE	Çok hafif masaüstü (GTK tabanlı)
 LXQt	LXDE’nin Qt tabanlı, hafif devamı
 Diğer seçenekler
 web server: Apache2 kurar. Seçme. Subject’te yasak, ayrıca gereksiz bir servis ve açık port demek.
-
-SSH server: OpenSSH sunucusunu kurar, uzaktan terminal erişimi sağlar. Seç. Subject’te SSH zorunlu. Sonradan /etc/ssh/sshd_config içinde portu 4242 yapacak ve root girişini kapatacaksın. İşaretlemezsen sonradan apt install openssh-server ile de kurulur.
-
-standart yardımcı yazılımlar (standard system utilities): man, less, wget, nano gibi temel komut satırı araçlarını kurar. Seç. Grafik arayüz içermez, sistemle çalışmak için faydalı.
-
-Choose a Debian Blend for installation: Debian Pure Blends (Debian Edu, Debian Med, Debian Science gibi belli bir kullanım alanına göre hazırlanmış paket setleri) için bir seçim ekranı. Hiçbirini seçme. Bu projeyle ilgisi yok, çoğu grafik arayüz getirir. Ekran boş geliyorsa ya da zorunlu değilse geç.
+SSH server: OpenSSH sunucusunu kurar, uzaktan terminal erişimi sağlar. Seç. Subject’te SSH zorunlu.
+Sonradan /etc/ssh/sshd_config içinde portu 4242 yapacak ve root girişini kapatacaksın. İşaretlemezsen
+sonradan apt install openssh-server ile de kurulur.
+standart yardımcı yazılımlar (standard system utilities): man, less, wget, nano gibi temel komut satırı
+araçlarını kurar. Seç. Grafik arayüz içermez, sistemle çalışmak için faydalı.
+Choose a Debian Blend for installation: Debian Pure Blends (Debian Edu, Debian Med, Debian Science gibi
+belli bir kullanım alanına göre hazırlanmış paket setleri) için bir seçim ekranı. Hiçbirini seçme. Bu projeyle
+ilgisi yok, çoğu grafik arayüz getirir. Ekran boş geliyorsa ya da zorunlu değilse geç.
 
 
 
