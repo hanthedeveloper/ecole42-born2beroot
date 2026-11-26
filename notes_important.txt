@@ -188,18 +188,17 @@ Dikkat edersen 2. adımda henüz hiçbir şifre açılmamış durumda. GRUB ve k
 /boot şifresiz olmak zorunda. Şifreyi soran yazılım (initramfs) bile /boot içinde duruyor. /boot şifreli
 olsaydı, o şifreyi soracak yazılımı yükleyemezdin.
 
-Bölüm                  İçerik                    Şifreli mi             Neden
-sda1      Kernel, initramfs, GRUB dosyaları       Hayır    Şifre sorulmadan önce okunması gerekiyor. Kişisel
-veri içermez.
-sda5    Sistem, kullanıcı verisi, loglar, swap     Evet        Asıl korunması gereken her şey burada.
-*** “/boot şifrelenemez çünkü önyükleyici ve kernel, şifre çözülmeden
-önce okunmak zorunda. Hassas veriler ise şifreli LVM’in içinde.” ***
-
 Neden numara 5?
 Diskte MBR (msdos) bölüm tablosu kullandığın için en fazla 4 birincil bölüm olabilir ve numaraları 1-4'tür.
 Mantıksal (logical) bölümler her zaman 5'ten başlar. Bu yüzden ikinci bölümü mantıksal açınca sda5 oldu.
 MBR (Master Boot Record), diskin en başındaki 512 baytlık bölgedir. İçinde önyükleme kodu ve bölüm tablosu bulunur.
 “msdos” etiketi, bu eski bölüm tablosu biçiminin adıdır.
+Bölüm tablosu, diskin başında duran ve diskin hangi bölümlere ayrıldığını tutan küçük bir kayıt
+defteridir. Her bölüm için şunları yazar:
+Bölümün diskte nereden başladığı
+Ne kadar büyük olduğu
+Türü (Linux, swap, extended vb.)
+Önyüklenebilir (boot) olup olmadığı
 
 sda2 nerede?
 Mantıksal bölüm açtığında kurulum, onları içine alan bir genişletilmiş bölümü otomatik
@@ -386,6 +385,7 @@ chage -l haincel
 chage -l, Linux sistemlerde bir kullanıcı hesabının şifre ve hesap aging
 bilgilerini listeleyen komuttur. chage, "change age" ifadesinden gelir; -l ise "list" (listele)
 
+/etc/pam.d/common-password
 pam_pwquality satırı:
 password requisite pam_pwquality.so retry=3 minlen=10 ucredit=-1 lcredit=-1 dcredit=-1 maxrepeat=3
 reject_username difok=7 enforce_for_root
