@@ -8,8 +8,8 @@ Dosya sistemleri gerçek disk bölümlerine değil, LVM’in sunduğu esnek par�
 Bir benzetme: PV tuğla, VG depo, LV o depodan kestiğin raflar.
 Gerçek dünya                            LVM dünyası
 
-sda5_crypt  ──►  PV  ──┐
-                       ├──►  VG (LVMGroup)  ──►  LV root     → /
+sda5_crypt  ──►    PV  ──┐
+                         ├──►  VG (LVMGroup)  ──►  LV root     → /
 (ileride bir disk        │      (tek büyük         LV swap     → [SWAP]
  daha eklesen)  ──► PV ──┘       havuz)            LV home     → /home
                                                    LV var      → /var
@@ -27,14 +27,13 @@ haincel@haincel42:~$ sudo pvdisplay
   --- Physical volume ---
   PV Name               /dev/mapper/sda5_crypt
   VG Name               LVMGroup
-  PV Size               <29.52 GiB / not usable 0   
+  PV Size               <29.52 GiB / not usable 0
   Allocatable           yes 
   PE Size               4.00 MiB
   Total PE              7556
   Free PE               349
   Allocated PE          7207
   PV UUID               czbjG3-yw0z-O2XX-esOw-295c-jlsA-D2zXyJ
-   
 haincel@haincel42:~$
 
 2. Volume Group
@@ -177,6 +176,9 @@ her biri için ayrı parola ve ayrı ayar gerekirdi. Ayrıca LVM’in kendi yap�
 olduğu) da dışarıdan görünür olurdu. Şifreli katmanın içinde olunca dışarıdan bakan biri sadece anlamsız
 rastgele veri görür.
 
+lvextend -L -r +500M /dev/LVMGroup/home
+lvreduce -r -L -500M /dev/LVMGroup/srv
+
 Neden sda1 şifrelenmiyor, sda5 şifreleniyor?
 Bilgisayarın açılış sırası, bu sorunun cevabını verir:
 BIOS diskin başındaki bölümleme tablosuna ve önyükleyiciye bakar.
@@ -290,6 +292,9 @@ sshd o portu dinlediği için bağlantıyı karşılar ve şifre sorar.
 ___________________________________________________________________________________________________________________
 
 sudo kuralları
+
+usermod -aG sudo haincel
+deluser --remove-home
 
 sudo -l (list), mevcut kullanıcının sudo ile hangi komutları çalıştırabileceğini listeler.
 Hangi Defaults ayarları senin için geçerli (passwd_tries, secure_path, requiretty vb.)
@@ -427,7 +432,7 @@ SHA-1, bir dosyanın içindeki tüm baytları okuyup 40 karakterlik sabit bir me
 Aynı dosya her zaman aynı özeti verir.
 Dosyada tek bir bit bile değişse, özet tamamen farklı çıkar.
 Sen repoya sanal makineyi koymuyorsun (subject bunu yasaklıyor), sadece signature.txt içine bu özeti
-yapıştırıyorsun. Savunmada değerlendiren kişi senin makinenin disk dosyasının özetini alıp signature.txt ile
+yapıştırıyorsun. Savunmada değerlendiren kişi senin makinenin disk dosyasının özetini alıp signature.txtile
 karşılaştırıyor.
 Amaç şu: teslimden sonra makinede gizlice değişiklik yapmadığını, yani teslim ettiğin makinenin değerlendirilen
 makineyle aynı olduğunu kanıtlamak. Eşleşmezse subject’e göre not 0 oluyor. Bu yüzden çok kritik.

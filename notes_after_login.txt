@@ -23,8 +23,7 @@ davranır. Bu yüzden ayar değiştirmek için programı yeniden derlemene gerek
 yeniden başlatman yeterli.
 
 /etc/ssh/sshd_config özel olarak SSH sunucusunun (sshd) ayar dosyasıdır. İçinde port numarası,
-root girişine izin verilip verilmediği gibi ayarlar var. Port’u 4242 yapmak için bu dosyadaki
-Port satırını değiştiriyorsun.
+root girişine izin verilip verilmediği gibi ayarlar var.
 /etc/ssh/ssh_config: istemci ayarları. Sen başka bir makineye bağlanırken ssh komutu bunu kullanır.
 /etc/ssh/sshd_config: sunucu ayarları. Sana gelen bağlantıları kabul eden sshd
 (d = daemon, arka planda çalışan servis) bunu kullanır.
@@ -39,7 +38,6 @@ host terminali                VirtualBox                 VM içi
 ssh -p 4242 localhost  ->  host'ta 4242'yi dinler  ->  VM'e iletir  ->  sshd (4242)
 
 “Port dolu” demek, o port numarasını şu an başka bir programın kullanıyor olması demek.
-
 4242 portu kapalı:
 k0m04s01% ss -tulnp | grep 4242
 tcp   LISTEN 0      5           127.0.0.1:4242       0.0.0.0:*
@@ -62,6 +60,24 @@ State: ESTAB: Established, yani bağlantı kurulmuş ve aktif. (Daha önce görd
 Recv-Q / Send-Q: 0 / 0: Bekleyen veri yok, bağlantı sakin.
 Local Address:Port: 10.0.2.15:4242: Bağlantının VM tarafı. VM'in IP'si ve SSH portu.
 Peer Address:Port: 10.0.2.2:44308: Bağlanan taraf. 10.0.2.2 VirtualBox NAT'te host makinenin (kendi bilgisayarının) VM'den görünen adresi. 44308 ise host tarafının rastgele seçtiği geçici port.
+
+Socket, iki programın (aynı makinede ya da ağ üzerinde) birbiriyle konuşabilmesi için işletim sisteminin sunduğu iletişim uç noktasıdır. Telefon prizi gibi düşünebilirsin: bir program prize takılır, öbür program da başka bir prize, aralarında veri akar.
+
+Ağ soketi nasıl tanımlanır?
+
+Bir bağlantı şu dörtlüyle belirlenir:
+
+(kaynak IP, kaynak port, hedef IP, hedef port)
+
+
+
+
+
+
+
+
+
+
 
 
 var olan kullanıcıyı sudo grubuna ekle
@@ -513,3 +529,35 @@ WSL'de de aynı mantık: pts çıktısı normal, çünkü WSL'de gerçek bir ekr
 Windows Terminal penceresi → WSL → /dev/pts/0 → bash
 
 Bu yüzden tty yazınca /dev/pts/0 görürsün. Born2beRoot'ta farklı olan şu: orada VirtualBox penceresinde giriş yaptığında gerçek sanal konsola düşersin (/dev/tty1), SSH ile girince de /dev/pts/0 olur. WSL'de ise her terminal sekmesi pts'tir (ikinci sekme pts/1 olabilir).
+
+
+
+
+
+
+
+
+
+curl nedir?
+
+curl (Client URL), komut satırından bir adrese istek gönderip cevabı terminale yazdıran araçtır. Tarayıcının yaptığı işi (bir web sunucusuna "bana şu sayfayı ver" demek) tarayıcı olmadan, terminalde yapar.
+
+bash
+curl localhost:8080
+
+Bu komut "bu makinenin 8080 portundaki sunucuya HTTP isteği gönder, gelen cevabı ekrana bas" demektir. Cevap normalde bir web sayfasının HTML kodudur.
+
+Değeri:
+
+Test: Bir servis gerçekten cevap veriyor mu, kolayca görürsün. Port açık olsa bile servis çalışıyor mu sorusunu cevaplar.
+Tarayıcı gerekmez: Born2beRoot'ta grafik arayüz yok, bu yüzden web sunucusunu test etmenin yolu budur.
+Dosya indirme, API çağırma gibi işlerde de kullanılır.
+
+
+python3 -m http.server 8080 ne yapıyor?
+
+Parça parça:
+
+python3: Python yorumlayıcısını çalıştırır.
+-m http.server: -m "bir modülü program gibi çalıştır" demek. http.server, Python'un içinde hazır gelen küçük bir web sunucusu modülüdür. Kurulum gerekmez.
+8080: Sunucunun dinleyeceği port numarası. Yazmazsan varsayılan 8000 olur.
