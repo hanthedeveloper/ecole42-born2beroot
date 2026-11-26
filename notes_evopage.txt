@@ -267,13 +267,11 @@ Varsayılan kurulum	Hep kurulu gelir	Minimal Debian'da genelde kurulu değildir,
 
 AppArmor, Linux kernel'inin güvenlik modülü (LSM) olarak çalışan bir MAC (Zorunlu Erişim Kontrolü) sistemidir. Her programın ne
 yapabileceğini bir profil ile sınırlar.
-
 Neden gerekli? Normal Linux izinleri (DAC) sadece "hangi kullanıcı" sorusuna bakar. Bir servis hacklenirse saldırgan o servisin
 kullanıcısının bütün haklarını kullanır. AppArmor, programı kullanıcıdan bağımsız olarak sınırlar: web sunucusu profilinde sadece
 /var/www okuyabiliyorsa, saldırgan ele geçirse bile /etc/shadow'u okuyamaz. Zarar sınırlı kalır.
 
 Nasıl çalışır?
-
 Profiller /etc/apparmor.d/ içinde durur.
 Profil, programın erişebileceği dosya yollarını, kullanabileceği yetenekleri (capabilities) ve ağ erişimini tanımlar.
 Profilde izin verilmeyen işlem engellenir.
@@ -447,13 +445,11 @@ without modifying the script itself.
 systemctl stop cron
 
 SSH nedir?
-
 SSH (Secure Shell), bir makineye ağ üzerinden şifreli ve kimliği doğrulanmış şekilde bağlanıp komut çalıştırmanı
 sağlayan protokoldür. Born2beRoot'ta kendi bilgisayarımdan VM'in terminaline SSH ile bağlanıyorum, sanki klavyenin
 başındaymışım gibi komut yazıyorum.
 Sunucu tarafında bunu sshd servisi sağlıyor (daha önce ss çıktısında 4242 portunu dinleyen süreç), istemci
 tarafında ssh komutu kullanılıyor.
-
 Değeri nedir?
 Şifreleme: Aradaki tüm trafik şifreli. Eski telnet gibi protokoller parolayı ve komutları düz metin gönderir, ağı
 dinleyen biri hepsini görür. SSH'ta dinleyen sadece anlamsız veri görür.
