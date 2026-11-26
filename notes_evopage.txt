@@ -242,9 +242,9 @@ SSH servisi adı	ssh (sshd de çalışır)	sshd
 Hedef kitle	Genel amaçlı: sunucu, masaüstü	Kurumsal sunucu
 Güvenlik yaması	Debian Security Team	RHEL kaynağını takip eder
 
-
 4. Sanal makinelerin amacı
-İzolasyon ve güvenlik: Riskli işlemleri (sistem kurmak, güvenlik ayarları, şüpheli yazılım denemek) host'u bozmadan yapabilirsin. Born2beRoot'ta yanlış bir sudoers ya da firewall ayarı VM'i kilitler ama bilgisayarına bir şey olmaz.
+İzolasyon ve güvenlik: Riskli işlemleri (sistem kurmak, güvenlik ayarları, şüpheli yazılım denemek) host'u bozmadan yapabilirsin.
+Born2beRoot'ta yanlış bir sudoers ya da firewall ayarı VM'i kilitler ama bilgisayarına bir şey olmaz.
 Aynı donanımda birden fazla sistem: Bir fiziksel sunucuda onlarca bağımsız sunucu çalıştırılabilir. Donanımdan tasarruf sağlanır.
 Test ve geliştirme: Farklı işletim sistemlerinde yazılım denenebilir, üretim ortamının kopyası kurulabilir.
 Snapshot ve yedekleme: VM'in durumu kaydedilip geri dönülebilir. Disk tek dosya olduğu için taşımak ve kopyalamak kolaydır.
@@ -253,35 +253,44 @@ Tekrarlanabilirlik: Aynı ortam başka bir makinede aynı şekilde çalıştır�
 
 Bu projede amaç: Gerçek bir sunucu ayarlama deneyimini, kendi bilgisayarına zarar verme riski olmadan yaşamak.
 
-apt	 vs aptitude
-Arayüz	Sadece komut satırı	Komut satırı ve etkileşimli metin arayüzü (aptitude yazınca menülü ekran açılır)
+                    apt                         aptitude
+Arayüz      Sadece komut satırı        Komut satırı ve etkileşimli metin arayüzü (aptitude yazınca menülü ekran açılır)
 Kullanım	Basit, hızlı, günlük işler için. Debian'da standart	Daha gelişmiş özellikler
-Çakışma/bağımlılık çözümü	Bir sorun çıkarsa genellikle hata verip durur	Gelişmiş çözücüsü vardır: alternatif çözüm önerileri sunar, sen seçersin
-Paket silerken	apt remove bağımlılıkları bırakır, apt autoremove gerekir	Gereksiz kalan otomatik kurulmuş bağımlılıkları da temizlemeye eğilimlidir
+Çakışma/bağımlılık çözümü	Bir sorun çıkarsa genellikle hata verip durur	Gelişmiş çözücüsü vardır: alternatif çözüm önerileri
+sunar, sen seçersin
+Paket silerken	apt remove bağımlılıkları bırakır, apt autoremove gerekir	Gereksiz kalan otomatik kurulmuş bağımlılıkları da
+temizlemeye eğilimlidir
 Arama	Basit (apt search)	Güçlü arama desenleri
 "Bu paket neden kurulu?"	Doğrudan yok	aptitude why paket ile gösterir
 Varsayılan kurulum	Hep kurulu gelir	Minimal Debian'da genelde kurulu değildir, apt install aptitude ile kurulur
 6. AppArmor nedir?
 
-AppArmor, Linux kernel'inin güvenlik modülü (LSM) olarak çalışan bir MAC (Zorunlu Erişim Kontrolü) sistemidir. Her programın ne yapabileceğini bir profil ile sınırlar.
+AppArmor, Linux kernel'inin güvenlik modülü (LSM) olarak çalışan bir MAC (Zorunlu Erişim Kontrolü) sistemidir. Her programın ne
+yapabileceğini bir profil ile sınırlar.
 
-Neden gerekli? Normal Linux izinleri (DAC) sadece "hangi kullanıcı" sorusuna bakar. Bir servis hacklenirse saldırgan o servisin kullanıcısının bütün haklarını kullanır. AppArmor, programı kullanıcıdan bağımsız olarak sınırlar: web sunucusu profilinde sadece /var/www okuyabiliyorsa, saldırgan ele geçirse bile /etc/shadow'u okuyamaz. Zarar sınırlı kalır.
+Neden gerekli? Normal Linux izinleri (DAC) sadece "hangi kullanıcı" sorusuna bakar. Bir servis hacklenirse saldırgan o servisin
+kullanıcısının bütün haklarını kullanır. AppArmor, programı kullanıcıdan bağımsız olarak sınırlar: web sunucusu profilinde sadece
+/var/www okuyabiliyorsa, saldırgan ele geçirse bile /etc/shadow'u okuyamaz. Zarar sınırlı kalır.
 
 Nasıl çalışır?
 
 Profiller /etc/apparmor.d/ içinde durur.
-Profil, programın erişebileceği dosya yollarını, kullanabileceği yetenekleri (capabilities) ve ağ erişimini tanımlar. Profilde izin verilmeyen işlem engellenir.
+Profil, programın erişebileceği dosya yollarını, kullanabileceği yetenekleri (capabilities) ve ağ erişimini tanımlar.
+Profilde izin verilmeyen işlem engellenir.
 İki ana mod:
 enforce: Kural ihlalini engeller ve loglar.
 complain: Engellemez, sadece loglar (profil geliştirirken kullanılır).
 Profili olmayan programlar kısıtlanmaz (unconfined).
 Kernel her dosya açma, ağ bağlantısı gibi işlemde önce DAC'a, sonra AppArmor'a bakar. İkisi de izin verirse işlem olur.
 
-VM: Her sanal makinenin kendi kernel'i vardır. Sanal donanım üstünde komple bir işletim sistemi çalışır. Senin Born2beRoot VM'in kendi Linux kernel'ini, kendi bootloader'ını, kendi disk bölümlerini çalıştırır.
+VM: Her sanal makinenin kendi kernel'i vardır. Sanal donanım üstünde komple bir işletim sistemi çalışır.
+Senin Born2beRoot VM'in kendi Linux kernel'ini, kendi bootloader'ını, kendi disk bölümlerini çalıştırır.
 
-Container: Ayrı bir kernel yoktur. Container'daki programlar host'un kernel'ini paylaşır. Kernel, bu programları iki özellikle birbirinden ayırır:
+Container: Ayrı bir kernel yoktur. Container'daki programlar host'un kernel'ini paylaşır. Kernel, bu programları iki özellikle
+birbirinden ayırır:
 
-Namespace: Süreç, container'a "sadece kendi süreçlerini, kendi ağını, kendi dosya sistemini görüyorum" dedirtir. Yalıtım görünüm düzeyindedir.
+Namespace: Süreç, container'a "sadece kendi süreçlerini, kendi ağını, kendi dosya sistemini görüyorum" dedirtir. Yalıtım görünüm
+düzeyindedir.
 cgroups: Container'ın kullanabileceği CPU ve RAM miktarını sınırlar.
 
 Container, aslında özel kısıtlanmış bir süreçtir, bir işletim sistemi değildir.
@@ -306,41 +315,56 @@ explain to you how they were able to set up the rules requested in the subject o
 
 The subject imposes strict rules for sudo. The learner being evaluated must first explain the value
 and operation of sudo using examples of their choice.
-Sudo nedir? "Superuser do" demek. Normal bir kullanıcının, tek bir komutu geçici olarak root yetkisiyle çalıştırmasını sağlar. Root'a tamamen geçmek yerine sadece o komut için yetki alırsın.
+Sudo nedir? "Superuser do" demek. Normal bir kullanıcının, tek bir komutu geçici olarak
+root yetkisiyle çalıştırmasını sağlar. Root'a tamamen geçmek yerine sadece o komut için yetki alırsın.
 
 Neden değerli?
-
-En az yetki ilkesi: Sürekli root olarak çalışırsan yanlış yazılmış bir rm -rf bütün sistemi silebilir. Sudo ile normal kullanıcıyken çalışırsın, yetkiyi sadece gerektiğinde alırsın.
-Root parolasını paylaşmak gerekmez: Herkes kendi parolasıyla sudo kullanır. Birinin yetkisini almak için root parolasını değiştirmek gerekmez, sadece o kişiyi sudo grubundan çıkarırsın.
-Hesap verebilirlik: Her sudo komutu loglanır. Kim, ne zaman, hangi komutu çalıştırdı belli olur. Born2beRoot'ta bu loglar /var/log/sudo/ altında, hem girdi hem çıktı olarak tutuluyor.
-İnce ayar: /etc/sudoers ve /etc/sudoers.d/ ile kimin hangi komutu çalıştırabileceğini sınırlayabilirsin. Mesela bir kullanıcıya sadece servis yeniden başlatma yetkisi verebilirsin.
-
-Nasıl çalışır? sudo komut yazdığında sudo önce sudoers dosyalarına bakıp bu kullanıcının bu komutu çalıştırmaya yetkili olup olmadığını kontrol eder. Yetkiliyse kullanıcının kendi parolasını ister (root'unkini değil). Doğruysa komutu root olarak çalıştırır ve olayı loglar. Parola kısa süre hatırlanır, her komutta tekrar sorulmaz.
-
-
+En az yetki ilkesi: Sürekli root olarak çalışırsan yanlış yazılmış bir rm -rf bütün sistemi silebilir.
+Sudo ile normal kullanıcıyken çalışırsın, yetkiyi sadece gerektiğinde alırsın.
+Root parolasını paylaşmak gerekmez: Herkes kendi parolasıyla sudo kullanır. Birinin yetkisini almak için
+root parolasını değiştirmek gerekmez, sadece o kişiyi sudo grubundan çıkarırsın.
+Hesap verebilirlik: Her sudo komutu loglanır. Kim, ne zaman, hangi komutu çalıştırdı belli olur. Born2beRoot'ta
+bu loglar /var/log/sudo/ altında, hem girdi hem çıktı olarak tutuluyor
+İnce ayar: /etc/sudoers ve /etc/sudoers.d/ ile kimin hangi komutu çalıştırabileceğini sınırlayabilirsin. Mesela
+bir kullanıcıya sadece servis yeniden başlatma yetkisi verebilirsin.
+Nasıl çalışır? sudo komut yazdığında sudo önce sudoers dosyalarına bakıp bu kullanıcının bu komutu çalıştırmaya
+yetkili olup olmadığını kontrol eder. Yetkiliyse kullanıcının kendi parolasını ister (root'unkini değil).
+Doğruysa komutu root olarak çalıştırır ve olayı loglar. Parola kısa süre hatırlanır, her komutta tekrar sorulmaz.
 The student being evaluated should provide a basic explanation of what UFW (or Firewalld) is and its value.
 UFW nedir?
 
-UFW (Uncomplicated Firewall), Debian/Ubuntu'da güvenlik duvarını yönetmek için kullanılan basit bir komut satırı aracıdır. Güvenlik duvarının kendisi değil, onu yöneten bir ön yüzdür. Asıl filtrelemeyi kernel'deki netfilter yapar. Bunu eskiden iptables, şimdi çoğunlukla nftables ile yönetiriz, ama bu komutlar karmaşık ve uzundur. UFW aynı işi ufw allow 4242 gibi tek satırla yapmamı sağlar.
+UFW (Uncomplicated Firewall), Debian/Ubuntu'da güvenlik duvarını yönetmek için kullanılan basit bir komut
+satırı aracıdır. Güvenlik duvarının kendisi değil, onu yöneten bir ön yüzdür. Asıl filtrelemeyi kernel'deki
+netfilter yapar. Bunu eskiden iptables, şimdi çoğunlukla nftables ile yönetiriz, ama bu komutlar karmaşık ve
+uzundur. UFW aynı işi ufw allow 4242 gibi tek satırla yapmamı sağlar.
 
-Güvenlik duvarı ne yapar? Makineye gelen ve çıkan ağ trafiğini kurallara göre inceler. Her bağlantı için "geçsin mi, engellensin mi?" kararını verir. Bir bina girişindeki güvenlik görevlisi gibi düşünebilirsin: listede olmayan kapıdan kimseyi içeri almaz.
+Güvenlik duvarı ne yapar? Makineye gelen ve çıkan ağ trafiğini kurallara göre inceler. Her bağlantı için
+"geçsin mi, engellensin mi?" kararını verir. Bir bina girişindeki güvenlik görevlisi gibi düşünebilirsin:
+listede olmayan kapıdan kimseyi içeri almaz.
 
 Değeri nedir?
-Saldırı yüzeyini küçültür. Bir servis yanlışlıkla ya da bilmeden bir port dinliyor olsa bile, o port için kural yoksa dışarıdan erişilemez. Sadece bilerek açtığım portlar erişilebilir olur.
-Varsayılan olarak reddet ilkesi. UFW'nin varsayılanı gelen trafiği reddetmek, giden trafiğe izin vermektir (deny incoming, allow outgoing). Yani ben açıkça izin vermedikçe dışarıdan kimse bağlanamaz.
+Saldırı yüzeyini küçültür. Bir servis yanlışlıkla ya da bilmeden bir port dinliyor olsa bile, o port için kural
+yoksa dışarıdan erişilemez. Sadece bilerek açtığım portlar erişilebilir olur.
+Varsayılan olarak reddet ilkesi. UFW'nin varsayılanı gelen trafiği reddetmek, giden trafiğe izin vermektir
+(deny incoming, allow outgoing). Yani ben açıkça izin vermedikçe dışarıdan kimse bağlanamaz.
 Kolay yönetim. Kurallar okunabilir, ekleme ve silme basittir, IPv4 ve IPv6 için kuralları birlikte oluşturur.
 Servis bazlı kontrol. İstersem bir portu herkese, istersem sadece belli bir IP'ye açabilirim.
 Örnekler
-Örnek 1: Born2beRoot'ta sadece SSH için 4242 portunu açtım. Biri 22 portundan SSH denerse bağlantı reddedilir, çünkü orada ne servis var ne de izin veren kural.
-Örnek 2: Bonusta lighttpd kurunca 80 numaralı portu açmam gerekir (sudo ufw allow 80). Kural olmazsa web sitesi çalışıyor olsa bile dışarıdan açılmaz.
-Örnek 3: Bir kuralı gereksiz buldum, silerim: sudo ufw delete allow 80. Servis çalışmaya devam eder ama dış erişim kapanır.
+Örnek 1: Born2beRoot'ta sadece SSH için 4242 portunu açtım. Biri 22 portundan SSH denerse bağlantı reddedilir,
+çünkü orada ne servis var ne de izin veren kural.
+Örnek 2: Bonusta lighttpd kurunca 80 numaralı portu açmam gerekir (sudo ufw allow 80). Kural olmazsa web sitesi
+çalışıyor olsa bile dışarıdan açılmaz.
+Örnek 3: Bir kuralı gereksiz buldum, silerim: sudo ufw delete allow 80. Servis çalışmaya devam eder ama dış erişim
+kapanır.
 Born2beRoot'ta gösterebileceğin komutlar
 bash
 sudo ufw status verbose
 sudo ufw status numbered
 sudo systemctl status ufw
-status verbose çıktısında Status: active, Default: deny (incoming), allow (outgoing) ve 4242/tcp ALLOW IN Anywhere (ayrıca 4242/tcp (v6)) görünmeli.
-systemctl status ufw çıktısında active ve enabled olmalı. Bu, makine yeniden başlayınca da güvenlik duvarının otomatik açıldığını gösterir.
+status verbose çıktısında Status: active, Default: deny (incoming), allow (outgoing) ve 4242/tcp ALLOW IN
+Anywhere (ayrıca 4242/tcp (v6)) görünmeli.
+systemctl status ufw çıktısında active ve enabled olmalı. Bu, makine yeniden başlayınca da güvenlik duvarının
+otomatik açıldığını gösterir.
 Canlı kural ekleme/silme
 
 Değerlendirici yeni bir kural eklemeni isteyebilir:
@@ -350,30 +374,24 @@ sudo ufw allow 8080
 sudo ufw status numbered
 sudo ufw delete <numara>
 
-Silerken IPv4 ve IPv6 satırları ayrı numaralanır, ikisini de silmeyi unutma. Alternatif olarak sudo ufw delete allow 8080 hepsini tek seferde siler.
-iptables, Linux kernel'indeki güvenlik duvarını (netfilter) doğrudan yönetmek için kullanılan komut satırı aracıdır. UFW'nin arkada kullandığı asıl araç budur.
-
-
+Silerken IPv4 ve IPv6 satırları ayrı numaralanır, ikisini de silmeyi unutma. Alternatif olarak sudo ufw
+delete allow 8080 hepsini tek seferde siler.
+iptables, Linux kernel'indeki güvenlik duvarını (netfilter) doğrudan yönetmek için kullanılan komut satırı
+aracıdır. UFW'nin arkada kullandığı asıl araç budur.
 he student being evaluated must be able to explain to you basically what SSH is and the value of using it.
 
-
-
 What "cron" is.
-
 Cron nedir?
-
-Cron, Linux'ta görevleri belirli zamanlarda otomatik çalıştıran zamanlayıcı servisidir. Arka planda sürekli çalışan cron daemon'ı her dakika kontrol tablosuna bakar ve zamanı gelen komutu çalıştırır.
-
-Değeri: Yedek alma, log temizleme, güncelleme kontrolü gibi tekrarlayan işleri elle yapmak gerekmez. Born2beRoot'ta monitoring.sh her 10 dakikada bir kendiliğinden çalışıp bilgileri tüm terminallere yayınlıyor.
-
+Cron, Linux'ta görevleri belirli zamanlarda otomatik çalıştıran zamanlayıcı servisidir.
+Arka planda sürekli çalışan cron daemon'ı her dakika kontrol tablosuna bakar ve zamanı gelen komutu çalıştırır.
+Değeri: Yedek alma, log temizleme, güncelleme kontrolü gibi tekrarlayan işleri elle yapmak gerekmez.
+Born2beRoot'ta monitoring.sh her 10 dakikada bir kendiliğinden çalışıp bilgileri tüm terminallere yayınlıyor.
 Zamanlanmış görevlerin listesine crontab (cron table) denir. Her kullanıcının kendi crontab'ı olabilir.
 
 bash
 sudo crontab -e     # root'un crontab'ını düzenle
 sudo crontab -l     # root'un crontab'ını listele
 sudo systemctl status cron   # servis çalışıyor mu
-
-Not: Born2beRoot'ta sudo crontab -e ile root'un crontab'ını düzenlersin, çünkü script wall ve sistem bilgileri okuyor. -e edit (düzenle), -l list demek.
 
 Crontab satır formatı
 ┌──────── dakika (0-59)
@@ -388,20 +406,19 @@ Crontab satır formatı
 @reboot özel bir kısayol: sistem açıldığında bir kez çalıştır.
 1. satır: @reboot sleep 10 && /usr/local/bin/monitoring.sh
 @reboot: Makine her açıldığında bu görev bir kez çalışır.
-sleep 10: 10 saniye bekle. Açılışın hemen başında ağ ve diğer servisler tam hazır olmayabilir, bu bekleme onlara zaman tanır.
+sleep 10: 10 saniye bekle. Açılışın hemen başında ağ ve diğer servisler tam hazır olmayabilir,
+bu bekleme onlara zaman tanır.
 &&: Soldaki komut başarılı biterse sağdakini çalıştır. Yani önce 10 saniye bekle, sonra script'i başlat.
-/usr/local/bin/monitoring.sh: Çalıştırılacak script. Tam yolla yazılır, çünkü cron'un ortam değişkenleri (PATH) sınırlıdır.
-
+/usr/local/bin/monitoring.sh: Çalıştırılacak script. Tam yolla yazılır, çünkü cron'un ortam değişkenleri
+(PATH) sınırlıdır.
 Sonuç: Sistem açıldıktan 10 saniye sonra ilk monitoring çıktısı gelir.
-
 2. satır: */10 * * * * sleep $(uptime -s | awk -F: '{print $2\%10*60+$3}') && /usr/local/bin/monitoring.sh
-
 Zamanlama kısmı */10 * * * *: Her saatin 0, 10, 20, 30, 40, 50. dakikasında çalış.
-
-Asıl numara sleep $(...) kısmı. Subject, script'in "sunucu başlatıldığından itibaren her 10 dakikada bir" çalışmasını ister. Saf */10 ise saat başına göre çalışır. Makine 09:03:27'de açıldıysa script 09:10:00'da çalışırdı, ama olması gereken 09:13:27'dir. Bu yüzden her çalışmadan önce, açılışın dakika ve saniye farkı kadar beklenir.
-
+Asıl numara sleep $(...) kısmı. Subject, script'in "sunucu başlatıldığından itibaren her 10 dakikada bir"
+çalışmasını ister. Saf */10 ise saat başına göre çalışır. Makine 09:03:27'de açıldıysa script 09:10:00'da
+çalışırdı, ama olması gereken 09:13:27'dir. Bu yüzden her çalışmadan önce, açılışın dakika ve saniye farkı
+kadar beklenir.
 Parça parça:
-
 uptime -s: Sistemin açıldığı zamanı verir. Örnek çıktı: 2026-11-26 09:03:27
 awk -F: ...: Satırı : işaretinden böler (-F: ayraç demek). Örnekte parçalar:
 $1 = 2026-11-26 09
@@ -414,31 +431,36 @@ $2\%10*60+$3: Hesap: (dakika % 10) * 60 + saniye.
 sleep 207: 207 saniye bekle.
 && monitoring.sh: Sonra script'i çalıştır.
 
-Sonuç: cron :10'da tetiklenir, 207 saniye (3 dk 27 sn) bekler ve script 09:13:27'de çalışır. Bir sonrakisi 09:23:27 olur. Böylece script, açılış saatine hizalı olarak her 10 dakikada bir çalışır.
+Sonuç: cron :10'da tetiklenir, 207 saniye (3 dk 27 sn) bekler ve script 09:13:27'de çalışır. Bir sonrakisi
+09:23:27 olur.
+Böylece script, açılış saatine hizalı olarak her 10 dakikada bir çalışır.
 
-\% neden ters bölülü? Crontab'ta % özel anlama sahip (yeni satır olarak yorumlanır). Komutta düz % yazarsan bozulur. \% ile kaçırırsın ve shell'e normal % olarak ulaşır.
+\% neden ters bölülü? Crontab'ta % özel anlama sahip (yeni satır olarak yorumlanır). Komutta düz % yazarsan
+bozulur. \% ile kaçırırsın ve shell'e normal % olarak ulaşır.
 
-Değerlendirmede kısa cevap
+"Cron, görevleri belirli zamanlarda otomatik çalıştıran zamanlayıcıdır. @reboot satırı sistem açılınca 10 saniye
+bekleyip script'i bir kez çalıştırır. İkinci satır */10 ile her 10 dakikada bir tetiklenir, ama önce açılış
+zamanının dakika ve saniyesine göre bekler. Böylece script açılıştan itibaren tam 10'ar dakika aralıkla çalışır."
 
-"Cron, görevleri belirli zamanlarda otomatik çalıştıran zamanlayıcıdır. @reboot satırı sistem açılınca 10 saniye bekleyip script'i bir kez çalıştırır. İkinci satır */10 ile her 10 dakikada bir tetiklenir, ama önce açılış zamanının dakika ve saniyesine göre bekler. Böylece script açılıştan itibaren tam 10'ar dakika aralıkla çalışır."
-
-Finally, the learner being evaluated should make the script stop running when the server has started up, but without
-modifying the script itself.
+Finally, the learner being evaluated should make the script stop running when the server has started up, but
+without modifying the script itself.
 systemctl stop cron
-
-
-
 
 SSH nedir?
 
-SSH (Secure Shell), bir makineye ağ üzerinden şifreli ve kimliği doğrulanmış şekilde bağlanıp komut çalıştırmanı sağlayan protokoldür. Born2beRoot'ta kendi bilgisayarımdan VM'in terminaline SSH ile bağlanıyorum, sanki klavyenin başındaymışım gibi komut yazıyorum.
-
-Sunucu tarafında bunu sshd servisi sağlıyor (daha önce ss çıktısında 4242 portunu dinleyen süreç), istemci tarafında ssh komutu kullanılıyor.
+SSH (Secure Shell), bir makineye ağ üzerinden şifreli ve kimliği doğrulanmış şekilde bağlanıp komut çalıştırmanı
+sağlayan protokoldür. Born2beRoot'ta kendi bilgisayarımdan VM'in terminaline SSH ile bağlanıyorum, sanki klavyenin
+başındaymışım gibi komut yazıyorum.
+Sunucu tarafında bunu sshd servisi sağlıyor (daha önce ss çıktısında 4242 portunu dinleyen süreç), istemci
+tarafında ssh komutu kullanılıyor.
 
 Değeri nedir?
-Şifreleme: Aradaki tüm trafik şifreli. Eski telnet gibi protokoller parolayı ve komutları düz metin gönderir, ağı dinleyen biri hepsini görür. SSH'ta dinleyen sadece anlamsız veri görür.
-Kimlik doğrulama: Bağlanan kişi parola ya da anahtar çiftiyle kim olduğunu kanıtlar. Sunucu da ilk bağlantıda kendi parmak iziyle kendini tanıtır, böylece yanlış sunucuya bağlanmanı (man-in-the-middle) fark edebilirsin.
-Uzaktan yönetim: Fiziksel erişim gerekmez. Gerçek sunucular genelde başka bir şehirde ya da veri merkezinde durur, yönetmenin yolu SSH'tır.
+Şifreleme: Aradaki tüm trafik şifreli. Eski telnet gibi protokoller parolayı ve komutları düz metin gönderir, ağı
+dinleyen biri hepsini görür. SSH'ta dinleyen sadece anlamsız veri görür.
+Kimlik doğrulama: Bağlanan kişi parola ya da anahtar çiftiyle kim olduğunu kanıtlar. Sunucu da ilk bağlantıda kendi
+parmak iziyle kendini tanıtır, böylece yanlış sunucuya bağlanmanı (man-in-the-middle) fark edebilirsin.
+Uzaktan yönetim: Fiziksel erişim gerekmez. Gerçek sunucular genelde başka bir şehirde ya da veri merkezinde durur,
+yönetmenin yolu SSH'tır.
 Veri bütünlüğü: Taşınan verinin yolda değiştirilmediği doğrulanır.
 Ek yetenekler: scp ve sftp ile güvenli dosya aktarımı, port yönlendirme (tünel) yapabilirsin.
 

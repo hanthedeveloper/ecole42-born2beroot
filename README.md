@@ -35,7 +35,7 @@ I wanted to learn:
 - Hypervisor: VirtualBox
 - Hostname: `haincel42`
 - Main user: `haincel` (groups: `sudo`, `user42`)
-- RAM / CPU / disk size: [TODO: e.g. RAM in MB, number of CPUs, 30 GB disk]
+- RAM / CPU / disk size: 1973 MB, 1, 32.2 GB disk
 - Network: NAT with a port forwarding rule: host `127.0.0.1:4343` to guest `4242` (TCP)
 
 ### Installing / running
@@ -110,7 +110,7 @@ sha1sum "born2beroot.vdi" > current.txt
 diff signature.txt current.txt
 ```
 
-[TODO: paste the real signature in signature.txt only after shutting the VM down. Starting the VM again changes it.]
+c937261c6b44200ed956cae5201e3e910e1e858a
 
 ## Project description
 

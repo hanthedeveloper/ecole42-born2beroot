@@ -235,18 +235,6 @@ sudo passwd -e kullanici
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 chage -l root
 PAM nedir?
 PAM, Pluggable Authentication Modules (Takılabilir Kimlik Doğrulama Modülleri) demektir.
@@ -496,23 +484,6 @@ wall (write all), o an açık olan bütün terminallere aynı mesajı yollayan b
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 tty (tanım)
 
 tty, kernel'in sağladığı bir terminal aygıtıdır: bir yandan klavyeden girdi alır, öbür yandan ekrana çıktı verir, ortada da shell ile konuşur.
@@ -529,14 +500,6 @@ WSL'de de aynı mantık: pts çıktısı normal, çünkü WSL'de gerçek bir ekr
 Windows Terminal penceresi → WSL → /dev/pts/0 → bash
 
 Bu yüzden tty yazınca /dev/pts/0 görürsün. Born2beRoot'ta farklı olan şu: orada VirtualBox penceresinde giriş yaptığında gerçek sanal konsola düşersin (/dev/tty1), SSH ile girince de /dev/pts/0 olur. WSL'de ise her terminal sekmesi pts'tir (ikinci sekme pts/1 olabilir).
-
-
-
-
-
-
-
-
 
 curl nedir?
 

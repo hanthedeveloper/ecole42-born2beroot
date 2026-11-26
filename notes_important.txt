@@ -1,11 +1,9 @@
-LVM’i adım adım anlatayım
 Normal bölümlemede her bölümün boyutu başta sabitlenir.
 /home dolarsa ve yanındaki /var yarı boşsa, aradaki alanı kolayca aktaramazsın.
 Bölümler diskte yan yana dizildiği için birini büyütmek komşusunu küçültmeyi gerektirir.
 LVM bu sabitliği ortadan kaldırmak için araya bir soyutlama katmanı koyar.
 Dosya sistemleri gerçek disk bölümlerine değil, LVM’in sunduğu esnek parçalara kurulur.
 
-Bir benzetme: PV tuğla, VG depo, LV o depodan kestiğin raflar.
 Gerçek dünya                            LVM dünyası
 
 sda5_crypt  ──►    PV  ──┐
@@ -309,10 +307,10 @@ User haincel may run the following commands on haincel42:
     (ALL : ALL) ALL
 
 env_reset: Komut çalışırken kullanıcının ortam değişkenlerini temizler, sadece güvenli olanları bırakır.
-Debian varsayılanıdır.
 mail_badpass: Yanlış parola girilince root’a mail gönderir. Debian varsayılanıdır.
-secure_path=...: PATH’i sabitler (daha önce konuştuğumuz konu). \: işaretleri sadece sudo -l çıktısındaki
-kaçış gösterimidir, dosyada düz : yazar.
+secure_path=...: PATH’i sabitler. \: işaretleri sadece sudo -l çıktısındaki
+kaçış gösterimidir, dosyada düz : yazar. bu dizinlere sadece root yazabilir, yani içindeki programlara güvenebilirsin.
+Kullanıcının kendi dizinleri (/home/..., /tmp vb.) aranmaz.
 passwd_tries=3: Parola en fazla 3 kez denenebilir.
 badpass_message="wrong password bro": Yanlış parolada gösterilecek özel mesaj.
 logfile=/var/log/sudo/sudo_config: Her sudo komutunun metin kaydı bu dosyaya yazılır.
@@ -321,9 +319,14 @@ iolog_dir=/var/log/sudo: Bu girdi/çıktı kayıtlarının tutulacağı klasör.
 requiretty: Sudo sadece gerçek bir terminalden çalışır. Terminal olmayan ortamlardan (script, cron, bazı uzaktan
 çağrılar) kullanılamaz.
 use_pty: Komutu sahte bir terminal (pseudo-tty) içinde çalıştırır. Girdi/çıktı kaydının düzgün alınması ve bazı
-terminal saldırılarına karşı koruma için kullanılır.
-Subject’in istediği parola denemesi, özel hata mesajı, log arşivi, TTY zorunluluğu ve secure_path maddelerinin
-hepsi burada var.
+terminal saldırılarına karşı koruma için kullanılır. Normalde sudo, komutu senin terminalinde doğrudan çalıştırır. use_pty açıkken
+sudo komutu yeni bir pty oluşturup onun içinde çalıştırır. Araya sudo girer:
+1. Log kaydı (subject’teki madde): Subject “her sudo işleminin girdi ve çıktısı loglanmalı” diyor.
+Sudo, komutla senin aranda durduğu için klavyeden giren her şeyi ve ekrana çıkan her şeyi yakalayıp /var/log/sudo/
+altına yazabiliyor. Bu kayıt, log_input ve log_output ayarlarının çalışması için gereklidir.
+2. Güvenlik: Komut senin gerçek terminaline doğrudan bağlı olmadığı için, sudo ile çalışan bir program arka planda kalıp
+sonradan senin terminaline kötü niyetli girdi gönderemez. Örneğin sudo bitip komut arka planda çalışmaya devam ederse, normalde
+o program terminalindeki sonraki girdileri okumaya ya da terminale tuş vuruşu enjekte etmeye çalışabilirdi. Ayrı pty’de bu mümkün olmaz.
 
 %sudo ALL=(ALL:ALL) ALL
 Parantez içindeki ilk ALL (runas user): haincel, komutları herhangi bir kullanıcı gibi çalıştırabilir.
@@ -333,47 +336,7 @@ Sondaki ALL (komutlar): hangi komutu olursa olsun çalıştırabilir.
 ALL= kısmındaki host: bu kural her makinede geçerlidir. sudo -l çıktısında bu kısım “on haincel42” olarak
 zaten gösteriliyor.
 
-Defaults passwd_tries=3
-sudo çalıştırınca parola sorulur. Yanlış girersen en fazla 3 kez denemene izin verir, sonra komut iptal olur.
-Varsayılan zaten 3'tür, subject açıkça yazılmasını istediği için ekliyoruz.
-Defaults badpass_message="Yanlis parola, tekrar dene"
-Yanlış parola girdiğinde ekranda çıkacak mesaj. İstediğin metni yazabilirsin. Tırnak içinde olmalı.
-Defaults logfile="/var/log/sudo/sudo_config"
-Her sudo kullanımının (kim, ne zaman, hangi komutu çalıştırdı) yazılacağı log dosyası. Klasör (/var/log/sudo)
-önceden var olmalı, o yüzden mkdir -p /var/log/sudo yapıyoruz.
-Defaults log_input, log_output
-log_input, sudo oturumunda klavyeden yazdıklarını, log_output ise ekrana çıkan her şeyi kaydeder. Yani bir komutun
-sonucu bile sonradan incelenebilir.
-Defaults iolog_dir="/var/log/sudo"
-Yukarıdaki input/output kayıtlarının saklanacağı klasör. (logfile özet bir metin log’udur, iolog_dir ise
-oturumların tam kaydıdır.)
-Defaults requiretty
-sudo sadece gerçek bir terminalden (TTY) çalışır. Bir script, cron işi veya ele geçirilmiş bir
-web servisi terminalsiz şekilde sudo çağıramaz. Güvenlik önlemidir. Normal SSH bağlantında terminal
-olduğu için sorun çıkarmaz.
-
-Defaults secure_path="..."
-sudo ile çalışan komutların hangi klasörlerde aranacağını sabitler (/usr/sbin, /usr/bin, /bin vb.).
-Böylece birisi kendi PATH’ine sahte bir ls koyup sudo ile çalıştıramaz. Klasörler : ile ayrılır.
-Aslında değiştirmek zorunda değiliz. Sadece :/snap/bin eklemek Born2beroot subject’inde istenen bir şey,
-o yüzden önerdim.
-Neden ekleniyor?
-Subject, secure_path değerinin şu olmasını ister
-/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin
-secure_path nedir?
-secure_path, sudo ile komut çalıştırırken kullanılacak PATH değişkenini sabitleyen bir sudoers ayarıdır.
-Normalde PATH senin ortamından gelir. secure_path tanımlıysa sudo senin PATH’ini yok sayar ve bu listeyi kullanır.
-Defaults secure_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin"
-Ne işe yarar?
-Kullanıcı kendi PATH’ine kötü niyetli ya da yanlışlıkla tehlikeli bir klasör ekleyebilir. Örneğin PATH’in başına
-/home/kullanici/bin eklenmiş ve orada sahte bir ls ya da apt dosyası varsa, sudo ls bunu root yetkisiyle
-çalıştırabilir. secure_path ile sudo sadece güvenilir, root’a ait sistem klasörlerinde arama yapar, böylece bu
-saldırı (PATH hijacking) engellenir.
-Neden sonunda /snap/bin var?
-Subject’in bunu açıkça gerekçelendirmediğini düşünüyorum, ama en olası sebep şu: /snap/bin, Snap paketlerinin
-çalıştırılabilir dosyalarının bulunduğu klasördür ve Ubuntu’nun varsayılan sudoers dosyasında
-secure_path bu klasörle biter. Subject’teki örnek satır büyük ihtimalle oradan alınmış. Yani sudo üzerinden snap
-ile kurulmuş programlara erişebilmek için konmuştur.
+______________________________________________________________________________________________________________________________________
 
 nano /etc/login.defs
 /etc/login.defs, sistemin kullanıcı hesapları için varsayılan ayarlarını tuttuğu dosyadır.
@@ -394,6 +357,7 @@ bilgilerini listeleyen komuttur. chage, "change age" ifadesinden gelir; -l ise "
 pam_pwquality satırı:
 password requisite pam_pwquality.so retry=3 minlen=10 ucredit=-1 lcredit=-1 dcredit=-1 maxrepeat=3
 reject_username difok=7 enforce_for_root
+
 password: bu satır şifre değiştirme işlemi için geçerli (PAM’in dört türünden biri: auth, account,
 session, password).
 requisite: bu modül başarısız olursa işlem hemen durur ve diğer modüllere hiç geçilmez.
