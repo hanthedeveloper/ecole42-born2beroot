@@ -110,8 +110,6 @@ sha1sum "born2beroot.vdi" > current.txt
 diff signature.txt current.txt
 ```
 
-c937261c6b44200ed956cae5201e3e910e1e858a
-
 ## Project description
 
 ### Choice of operating system
