@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Born2beroot — Sunum</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #0a0e0d;
+    --surface:  #111714;
+    --panel:    #161c18;
+    --border:   #1f2b22;
+    --green:    #39ff7e;
+    --green-dim:#1a7a3a;
+    --amber:    #f5c842;
+    --red:      #ff4757;
+    --blue:     #5bf5ff;
+    --white:    #e8f0ea;
+    --muted:    #4a5c4e;
+    --font-mono: 'JetBrains Mono', monospace;
+    --font-sans: 'Syne', sans-serif;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--white);
+    font-family: var(--font-mono);
+    overflow-x: hidden;
+  }
+
+  /* ── NOISE OVERLAY ── */
+  body::before {
+    content:'';
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    opacity: 0.4;
+  }
+
+  /* ── SLIDE SYSTEM ── */
+  .slide {
+    display: none;
+    min-height: 100vh;
+    padding: 48px 64px;
+    position: relative;
+    z-index: 1;
+    animation: fadeIn .35s ease;
+  }
+  .slide.active { display: flex; flex-direction: column; }
+
+  @keyframes fadeIn {
+    from { opacity:0; transform: translateY(8px); }
+    to   { opacity:1; transform: translateY(0); }
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%);
+    z-index: 100;
+    display: flex; align-items: center; gap: 12px;
+    background: rgba(10,14,13,.92);
+    border: 1px solid var(--border);
+    border-radius: 50px;
+    padding: 10px 20px;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 0 40px rgba(57,255,126,.05);
+  }
+  nav button {
+    background: none; border: none; cursor: pointer;
+    color: var(--muted); font-family: var(--font-mono); font-size: 11px;
+    padding: 6px 14px; border-radius: 20px;
+    transition: all .2s;
+  }
+  nav button:hover { color: var(--green); }
+  nav button.prev-btn, nav button.next-btn {
+    background: var(--panel); border: 1px solid var(--border);
+    color: var(--white); font-size: 13px; padding: 6px 16px;
+  }
+  nav button.prev-btn:hover, nav button.next-btn:hover {
+    border-color: var(--green); color: var(--green);
+    box-shadow: 0 0 12px rgba(57,255,126,.2);
+  }
+  #slide-counter {
+    color: var(--muted); font-size: 11px; min-width: 52px; text-align:center;
+  }
+
+  /* ── COMPONENTS ── */
+  .tag {
+    display: inline-block;
+    font-size: 10px; font-weight: 700; letter-spacing: .12em;
+    text-transform: uppercase;
+    padding: 3px 10px; border-radius: 3px;
+    border: 1px solid currentColor;
+  }
+  .tag.green  { color: var(--green);  border-color: var(--green-dim);  background: rgba(57,255,126,.07); }
+  .tag.amber  { color: var(--amber);  border-color: rgba(245,200,66,.3); background: rgba(245,200,66,.07); }
+  .tag.blue   { color: var(--blue);   border-color: rgba(91,245,255,.3); background: rgba(91,245,255,.07); }
+  .tag.red    { color: var(--red);    border-color: rgba(255,71,87,.3);  background: rgba(255,71,87,.07); }
+
+  .slide-label {
+    font-size: 10px; letter-spacing: .2em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 12px;
+  }
+
+  h1 {
+    font-family: var(--font-sans); font-size: clamp(3rem, 7vw, 6rem);
+    font-weight: 800; line-height: .95;
+    color: var(--white);
+  }
+  h1 .accent { color: var(--green); }
+
+  h2 {
+    font-family: var(--font-sans); font-size: clamp(1.6rem, 3vw, 2.4rem);
+    font-weight: 700; line-height: 1.1;
+    color: var(--white);
+  }
+  h2 .accent { color: var(--green); }
+  h2 .accent-b { color: var(--blue); }
+  h2 .accent-a { color: var(--amber); }
+
+  h3 {
+    font-family: var(--font-sans); font-size: 1rem; font-weight: 700;
+    color: var(--green); letter-spacing: .05em; margin-bottom: 8px;
+  }
+
+  p { font-size: 14px; line-height: 1.75; color: #a8bfab; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content:'';
+    position: absolute; top:0; left:0; right:0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--green-dim), transparent);
+  }
+  .card.amber-top::before { background: linear-gradient(90deg, transparent, rgba(245,200,66,.4), transparent); }
+  .card.blue-top::before  { background: linear-gradient(90deg, transparent, rgba(91,245,255,.4), transparent); }
+  .card.red-top::before   { background: linear-gradient(90deg, transparent, rgba(255,71,87,.4), transparent); }
+
+  .code-block {
+    background: #060908;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px 20px;
+    font-size: 12px; line-height: 1.7;
+    color: #7ecf8e;
+    position: relative;
+    overflow-x: auto;
+  }
+  .code-block .prompt { color: var(--green); }
+  .code-block .comment { color: var(--muted); }
+  .code-block .cmd { color: var(--white); }
+  .code-block .out { color: #5a8f5e; }
+  .code-block .hl { color: var(--amber); }
+  .code-block .bhl { color: var(--blue); }
+
+  .terminal-bar {
+    background: #0d1410;
+    border: 1px solid var(--border); border-bottom: none;
+    border-radius: 6px 6px 0 0;
+    padding: 8px 16px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .terminal-bar span {
+    width:10px; height:10px; border-radius:50%;
+    display:inline-block;
+  }
+  .terminal-bar .dot-r { background: #ff4757; }
+  .terminal-bar .dot-y { background: #f5c842; }
+  .terminal-bar .dot-g { background: var(--green); }
+  .terminal-bar .title { font-size:11px; color:var(--muted); margin-left:8px; }
+  .terminal-wrap .code-block { border-radius: 0 0 6px 6px; }
+
+  ul.checklist { list-style: none; }
+  ul.checklist li { font-size: 13px; color: #a8bfab; padding: 5px 0; display: flex; gap: 10px; }
+  ul.checklist li::before { content:'✓'; color: var(--green); flex-shrink:0; }
+  ul.checklist li.warn::before { content:'⚠'; color: var(--amber); }
+  ul.checklist li.info::before { content:'→'; color: var(--blue); }
+
+  .compare-row {
+    display: grid; grid-template-columns: 1fr 28px 1fr; gap: 0;
+    align-items: stretch;
+  }
+  .compare-row .vs {
+    display:flex; align-items:center; justify-content:center;
+    color: var(--muted); font-size: 10px; font-weight:700;
+    border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  }
+  .compare-side {
+    background: var(--panel); border: 1px solid var(--border);
+    padding: 18px 20px;
+  }
+  .compare-side:first-child { border-radius: 8px 0 0 8px; }
+  .compare-side:last-child  { border-radius: 0 8px 8px 0; }
+  .compare-side h4 { font-family: var(--font-sans); font-size: .85rem; font-weight:700; margin-bottom: 10px; }
+  .compare-side h4.g { color: var(--green); }
+  .compare-side h4.b { color: var(--blue); }
+  .compare-side ul { list-style:none; }
+  .compare-side ul li { font-size: 12px; color: #8fa892; padding: 3px 0; }
+  .compare-side ul li::before { content:'· '; color: var(--muted); }
+
+  .q-block {
+    border-left: 2px solid var(--green-dim);
+    padding: 12px 18px;
+    background: rgba(57,255,126,.03);
+    border-radius: 0 6px 6px 0;
+    margin-bottom: 10px;
+  }
+  .q-block .q { font-size:12px; color: var(--amber); margin-bottom:5px; }
+  .q-block .a { font-size:13px; color: #b8ccbb; line-height:1.6; }
+  .q-block .a strong { color: var(--white); }
+
+  .person-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 6px; padding: 8px 14px;
+    font-size: 12px;
+  }
+  .person-badge .dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+
+  .big-stat {
+    font-family: var(--font-sans); font-size: 3rem; font-weight: 800;
+    line-height: 1; color: var(--green);
+  }
+  .big-stat-label { font-size: 11px; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: .1em; }
+
+  .lvm-tree {
+    font-size: 12px; line-height: 1.9; color: #7ecf8e;
+  }
+  .lvm-tree .disk  { color: var(--white); font-weight:600; }
+  .lvm-tree .part  { color: var(--blue); }
+  .lvm-tree .crypt { color: var(--amber); }
+  .lvm-tree .lv    { color: var(--green); }
+  .lvm-tree .mnt   { color: var(--muted); }
+
+  .divider {
+    border: none; border-top: 1px solid var(--border);
+    margin: 20px 0;
+  }
+
+  /* ── GLOWING TITLE BG ── */
+  .glow-bg {
+    position: absolute; top: 40%; left: 50%; transform: translate(-50%,-50%);
+    width: 600px; height: 300px;
+    background: radial-gradient(ellipse, rgba(57,255,126,.04) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  /* ── SCANLINES ── */
+  .scanlines {
+    position: absolute; inset:0; pointer-events:none;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.03) 2px, rgba(0,0,0,.03) 4px);
+    z-index: 0;
+  }
+
+  .content { position: relative; z-index:1; flex:1; display:flex; flex-direction:column; }
+
+  /* slide-specific padding bottom for nav */
+  .slide { padding-bottom: 100px; }
+
+  /* ── PROGRESS ── */
+  .progress-bar {
+    position: fixed; top:0; left:0; height:2px; z-index:200;
+    background: var(--green);
+    box-shadow: 0 0 8px var(--green);
+    transition: width .3s ease;
+  }
+
+  .flex-gap { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+  .mt-8  { margin-top: 8px; }
+  .mt-16 { margin-top: 16px; }
+  .mt-24 { margin-top: 24px; }
+  .mt-32 { margin-top: 32px; }
+
+  .inline-tag {
+    display:inline; background: rgba(57,255,126,.1);
+    color: var(--green); border-radius:3px; padding: 1px 6px;
+    font-size: .9em;
+  }
+  .inline-tag.a { background: rgba(245,200,66,.1); color: var(--amber); }
+  .inline-tag.b { background: rgba(91,245,255,.1); color: var(--blue); }
+
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+
+<!-- ══════════════════════════════════════════════════════
+     SLIDE 0 — KAPAK
+══════════════════════════════════════════════════════ -->
+<div class="slide active" id="slide-0">
+  <div class="scanlines"></div>
+  <div class="glow-bg"></div>
+  <div class="content" style="justify-content:center; min-height:80vh;">
+    <div class="slide-label">42 — Sistem Yönetimi Projesi · v5.2</div>
+    <h1 style="margin-top:16px;">
+      Born<span class="accent">2</span>be<br>root
+    </h1>
+    <p style="margin-top:24px; max-width:520px; font-size:15px; color:#6b8f72;">
+      Sıfırdan güvenli bir Linux sunucusu kurmak: sanallaştırma, disk şifreleme,
+      ağ güvenliği ve sistem izleme üzerine tam kapsamlı bir uygulama.
+    </p>
+
+    <div class="flex-gap mt-32">
+      <span class="person-badge"><span class="dot" style="background:var(--green)"></span> Kişi 1 — Zorunlu Bölüm</span>
+      <span class="person-badge"><span class="dot" style="background:var(--amber)"></span> Kişi 2 — Güvenlik & Servisler</span>
+      <span class="person-badge"><span class="dot" style="background:var(--blue)"></span> Kişi 3 — Bonus & Demo</span>
+    </div>
+
+    <div class="flex-gap mt-24">
+      <span class="tag green">Debian 12</span>
+      <span class="tag amber">LVM + LUKS</span>
+      <span class="tag blue">AppArmor</span>
+      <span class="tag green">UFW</span>
+      <span class="tag amber">Systemd</span>
+      <span class="tag blue">Docker</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     SLIDE 1 — PROJE NEDİR?
+══════════════════════════════════════════════════════ -->
+<div class="slide" id="slide-1">
+  <div class="content">
+    <div class="slide-label">Bölüm I · Proje Tanıtımı</div>
+    <h2>Proje <span class="accent">Nedir?</span></h2>
+    <p class="mt-16" style="max-width:680px;">
+      Born2beroot, grafik arayüz <em>olmadan</em> sıfırdan bir Linux sunucusu kurmayı öğretir.
+      VirtualBox üzerinde Debian kurulumu, disk şifreleme, güvenlik duvarı, parola politikaları
+      ve sistem izleme scripti bu projenin temel yapı taşlarıdır.
+    </p>
+
+    <div class="grid-3 mt-32">
+      <div class="card">
+        <div class="big-stat">2+</div>
+        <div class="big-stat-label">Şifreli LVM Bölümü</div>
+        <hr class="divider">
+        <p style="font-size:12px;">LUKS ile şifrelenmiş mantıksal disk bölümleri. root, swap, home, var, srv, tmp, var-log.</p>
+      </div>
+      <div class="card amber-top">
+        <div class="big-stat" style="color:var(--amber);">4242</div>
+        <div class="big-stat-label">SSH Port</div>
+        <hr class="divider">
+        <p style="font-size:12px;">Standart 22 yerine 4242. Root girişi kapalı. UFW sadece bu portu açık tutar.</p>
+      </div>
+      <div class="card blue-top">
+        <div class="big-stat" style="color:var(--blue);">10dk</div>
+        <div class="big-stat-label">Monitoring Aralığı</div>
+        <hr class="divider">
+        <p style="font-size:12px;">monitoring.sh sistemi izler ve her 10 dakikada wall ile tüm terminallere yayınlar.</p>
+      </div>
+    </div>
+
+    <div class="mt-24">
+      <h3>Neden Debian Seçtik?</h3>
+      <div class="grid-2">
+        <ul class="checklist">
+          <li>Geniş topluluk desteği ve dokümantasyon</li>
+          <li>APT paket yöneticisi — basit, güvenilir</li>
+          <li>AppArmor varsayılan olarak entegre</li>
+          <li>Yeni başlayanlar için Rocky'den çok daha az karmaşık</li>
+        </ul>
+        <ul class="checklist">
+          <li class="info">Rocky: SELinux gerektirir, KDump yok ama daha karmaşık</li>
+          <li class="info">Debian: Stable branch — test/unstable yasak</li>
+          <li class="info">Her iki OS da projeyi karşılar, tercih önemli</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     SLIDE 2 — DEBIAN vs ROCKY & KARŞILAŞTIRMALAR
+══════════════════════════════════════════════════════ -->
+<div class="slide" id="slide-2">
+  <div class="content">
+    <div class="slide-label">Bölüm II · Karşılaştırmalar</div>
+    <h2>Debian <span class="accent">vs</span> Rocky <span class="accent-b">&</span> Diğerleri</h2>
+
+    <div style="display:flex; flex-direction:column; gap:14px; margin-top:24px;">
+
+      <div class="compare-row">
+        <div class="compare-side">
+          <h4 class="g">Debian</h4>
+          <ul>
+            <li>APT · deb paketleri</li>
+            <li>AppArmor (path-based MAC)</li>
+            <li>Geniş topluluk, kolay dokümantasyon</li>
+            <li>Yeni başlayanlar için ideal</li>
+          </ul>
+        </div>
+        <div class="vs">VS</div>
+        <div class="compare-side">
+          <h4 class="b">Rocky Linux</h4>
+          <ul>
+            <li>DNF · rpm paketleri</li>
+            <li>SELinux (label-based MAC)</li>
+            <li>Enterprise ortama yakın</li>
+            <li>Daha dik öğrenme eğrisi</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="compare-row">
+        <div class="compare-side">
+          <h4 class="g">AppArmor</h4>
+          <ul>
+            <li>Dosya yoluna göre kısıtlama</li>
+            <li>Profil-tabanlı, okunması kolay</li>
+            <li>Debian'da varsayılan gelir</li>
+          </ul>
+        </div>
+        <div class="vs">VS</div>
+        <div class="compare-side">
+          <h4 class="b">SELinux</h4>
+          <ul>
+            <li>Etiket-tabanlı zorunlu erişim kontrolü</li>
+            <li>Çok güçlü ama yapılandırması zor</li>
+            <li>RHEL / Rocky'de varsayılan</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="compare-row">
+        <div class="compare-side">
+          <h4 class="g">UFW</h4>
+          <ul>
+            <li>iptables üstünde basit arayüz</li>
+            <li>Debian/Ubuntu için tasarlandı</li>
+            <li><code>ufw allow 4242</code> kadar basit</li>
+          </ul>
+        </div>
+        <div class="vs">VS</div>
+        <div class="compare-side">
+          <h4 class="b">firewalld</h4>
+          <ul>
+            <li>Zone-tabanlı dinamik güvenlik duvarı</li>
+            <li>nftables / iptables backend</li>
+            <li>RHEL ekosistemi için standart</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="compare-row">
+        <div class="compare-side">
+          <h4 class="g">VirtualBox</h4>
+          <ul>
+            <li>x86 üzerinde çalışır (Intel/AMD)</li>
+            <li>Okul bilgisayarları için uygun</li>
+            <li>Port yönlendirme kolay</li>
+          </ul>
+        </div>
+        <div class="vs">VS</div>
+        <div class="compare-side">
+          <h4 class="b">UTM</h4>
+          <ul>
+            <li>Apple Silicon (M1/M2) için</li>
+            <li>ARM üzerinde x86 emülasyonu</li>
+            <li>VirtualBox M1'de çalışmaz</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     SLIDE 3 — APT vs APTITUDE
+══════════════════════════════════════════════════════ -->
+<div class="slide" id="slide-3">
+  <div class="content">
+    <div class="slide-label">Bölüm III · Savunma Soruları</div>
+    <h2><span class="accent">apt</span> vs <span class="accent-a">aptitude</span></h2>
+
+    <div class="grid-2 mt-24">
+      <div>
+        <div class="card">
+          <h3>apt</h3>
+          <ul class="checklist">
+            <li>Düşük seviyeli CLI aracı</li>
+            <li>apt-get + apt-cache'in birleşimi</li>
+            <li>Çakışmaları çözmez, hata verir</li>
+            <li>Script ve otomasyon için ideal</li>
+            <li>Debian'da varsayılan gelir</li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <div class="card amber-top">
+          <h3 style="color:var(--amber)">aptitude</h3>
+          <ul class="checklist">
+            <li>Üst seviye paket yöneticisi</li>
+            <li>Bağımlılık çakışmalarını akıllıca çözer</li>
+            <li>Hem TUI (metin arayüzü) hem CLI</li>
+            <li>Neden kaldırıldığını gösterir</li>
+            <li>Ayrıca kurulması gerekir</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-24">
+      <h3>Savunmada Beklenen Cevap</h3>
+      <div class="q-block">
+        <div class="q">S: apt ile aptitude arasındaki fark nedir?</div>
+        <div class="a">
+          <strong>apt</strong> daha düşük seviyeli ve scriptler için idealdir; bağımlılık çakışmalarını çözemez.
+          <strong>aptitude</strong> ise daha akıllı bir çözüm motoru sunar, çakışma olduğunda birden fazla çözüm önerir.
+          İkisi de libapt-pkg kütüphanesini kullanır fakat aptitude varsayılan gelmez, ayrıca kurulması gerekir.
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-16">
+      <h3>AppArmor Nedir?</h3>
+      <div class="q-block">
+        <div class="q">S: AppArmor neden çalışıyor olmalı?</div>
+        <div class="a">
+          AppArmor, Linux Zorunlu Erişim Kontrolü (MAC) sistemidir. Her programa hangi dosyalara,
+          ağ bağlantılarına ve sistem çağrılarına erişebileceğini tanımlayan profiller uygular.
+          Proje şartı: boot'ta çalışıyor olmalı → <strong>aa-status</strong> ile doğrulanır.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     SLIDE 4 — DISK / LVM YAPISI
+══════════════════════════════════════════════════════ -->
+<div class="slide" id="slide-4">
+  <div class="content">
+    <div class="slide-label">Bölüm IV · Disk Yapılandırması</div>
+    <h2>LVM + <span class="accent">LUKS</span> Disk Yapısı</h2>
+
+    <div class="grid-2 mt-24">
+      <div>
+        <div class="terminal-wrap">
+          <div class="terminal-bar">
+            <span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span>
+            <span class="title">lsblk</span>
+          </div>
+          <div class="code-block">
+<div class="lvm-tree">
+<span class="disk">sda                  30.8G  disk</span>
+<span class="part">├─sda1               500M   /boot</span>
+<span class="part">└─sda5               30.3G</span>
+<span class="crypt">  └─sda5_crypt        30.3G  crypt</span>
+<span class="lv">    ├─LVMGroup-root   10G    <span class="mnt">/</span></span>
+<span class="lv">    ├─LVMGroup-swap   2.3G   <span class="mnt">[SWAP]</span></span>
+<span class="lv">    ├─LVMGroup-home   5G     <span class="mnt">/home</span></span>
+<span class="lv">    ├─LVMGroup-var    3G     <span class="mnt">/var</span></span>
+<span class="lv">    ├─LVMGroup-srv    3G     <span class="mnt">/srv</span></span>
+<span class="lv">    ├─LVMGroup-tmp    3G     <span class="mnt">/tmp</span></span>
+<span class="lv">    └─LVMGroup-var--log 4G  <span class="mnt">/var/log</span></span>
+</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <div class="card">
+          <h3>Neden LVM?</h3>
+          <ul class="checklist">
+            <li>Bölümleri çalışırken yeniden boyutlandır</li>
+            <li>Birden fazla diski tek grup olarak yönet</li>
+            <li>Snapshot desteği</li>
+            <li>Mantıksal ≠ fiziksel bölüm esnekliği</li>
+          </ul>
+        </div>
+        <div class="card amber-top">
+          <h3 style="color:var(--amber)">Neden LUKS?</h3>
+          <ul class="checklist">
+            <li>Disk-level şifreleme (AES-256)</li>
+            <li>Boot'ta şifre istenir → güvenli</li>
+            <li>Fiziksel erişimde veri okunamaz</li>
+            <li>dm-crypt üzerine standart katman</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-16">
+      <div class="q-block">
+        <div class="q">S: /boot neden şifreli değil?</div>
+        <div class="a">
+          Bootloader (GRUB) şifreli diski okuyamaz. <strong>/boot</strong> ayrı, şifresiz ext2 bölümünde tutulur.
+          Kernel ve initramfs buradan yüklenir, LUKS şifresi sonra girilir.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     SLIDE 5 — GÜVENLİK: SSH + UFW
+══════════════════════════════════════════════════════ -->
+<div class="slide" id="slide-5">
+  <div class="content">
+    <div class="slide-label">Bölüm V · Ağ Güvenliği</div>
+    <h2>SSH <span class="accent">&</span> UFW Yapılandırması</h2>
+
+    <div class="grid-2 mt-24">
+      <div>
+        <h3>SSH Konfigürasyonu</h3>
+        <div class="terminal-wrap">
+          <div class="terminal-bar">
+            <span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span>
+            <span class="title">/etc/ssh/sshd_config</span>
+          </div>
+          <div class="code-block">
+<span class="comment"># Port değiştirildi: 22 → 4242</span>
+<span class="hl">Port 4242</span>
+
+<span class="comment"># Root ile SSH girişi kapalı</span>
+<span class="hl">PermitRootLogin no</span>
+
+<span class="comment"># Parola auth aktif (anahtar da olabilir)</span>
+<span class="cmd">PasswordAuthentication yes</span>
+          </div>
+        </div>
+
+        <div class="code-block mt-8">
+<span class="prompt">$</span> <span class="cmd">sudo systemctl restart ssh</span>
+<span class="prompt">$</span> <span class="cmd">sudo systemctl status ssh</span>
+<span class="out">● ssh.service - OpenBSD Secure Shell</span>
+<span class="out">     Active: <span style="color:var(--green)">active (running)</span></span>
+        </div>
+      </div>
+
+      <div>
+        <h3>UFW Güvenlik Duvarı</h3>
+        <div class="terminal-wrap">
+          <div class="terminal-bar">
+            <span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span>
+            <span class="title">ufw status numbered</span>
+          </div>
+          <div class="code-block">
+<span class="out">Status: <span style="color:var(--green)">active</span></span>
+
+<span class="out">     To          Action  From</span>
+<span class="out">     --          ------  ----</span>
+<span class="hl">[ 1] 4242/tcp    ALLOW   Anywhere</span>
+<span class="out">[ 2] 80/tcp      ALLOW   Anywhere  <span class="comment">(bonus)</span></span>
+<span class="out">[ 3] 443/tcp     ALLOW   Anywhere  <span class="comment">(bonus)</span></span>
+          </div>
+        </div>
+
+        <div class="mt-16">
+          <ul class="checklist">
+            <li>Default: gelen tüm bağlantılar reddedilir</li>
+            <li>Sadece 4242 açık (zorunlu)</li>
+            <li>Boot'ta otomatik başlar</li>
+            <li>Port 22 kesinlikle kapalı</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-16">
+      <div class="q-block">
+        <div class="q">S: Host'tan VM'e nasıl bağlanırsın?</div>
+        <div class="a">
+          VirtualBox'ta port yönlendirme: Host 4242 → Guest 4242.
+          Ardından: <strong>ssh -p 4242 kullaniciadi@127.0.0.1</strong>
+          Dosya aktarımı için: <strong>scp -P 4242 -r . kullaniciadi@127.0.0.1:~/</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     SLIDE 6 — SUDO & PAROLA POLİTİKASI
+══════════════════════════════════════════════════════ -->
+<div class="slide" id="slide-6">
+  <div class="content">
+    <div class="slide-label">Bölüm VI · Güvenlik Politikaları</div>
+    <h2>Sudo <span class="accent">&</span> Parola Politikası</h2>
+
+    <div class="grid-2 mt-24">
+      <div>
+        <h3>Sudo Yapılandırması</h3>
+        <div class="terminal-wrap">
+          <div class="terminal-bar">
+            <span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span>
+            <span class="title">/etc/sudoers.d/born2beroot</span>
+          </div>
+          <div class="code-block" style="font-size:11px;">
+<span class="hl">Defaults passwd_tries=3</span>
+<span class="comment"># Maks 3 yanlış şifre denemesi</span>
+
+<span class="hl">Defaults badpass_message="..."</span>
+<span class="comment"># Özel hata mesajı</span>
+
+<span class="hl">Defaults log_input, log_output</span>
+<span class="hl">Defaults logfile="/var/log/sudo/sudo.log"</span>
+<span class="comment"># Tüm girdi/çıktı loglanır</span>
+
+<span class="hl">Defaults requiretty</span>
+<span class="comment"># TTY olmadan sudo çalışmaz</span>
+
+<span class="hl">Defaults secure_path="..."</span>
+<span class="comment"># PATH kısıtlandı</span>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h3>Parola Politikası</h3>
+        <div class="card">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            <div>
+              <div style="font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.1em;">login.defs</div>
+              <ul class="checklist" style="margin-top:6px;">
+                <li>MAX_DAYS: <strong style="color:var(--white)">30</strong></li>
+                <li>MIN_DAYS: <strong style="color:var(--white)">2</strong></li>
+                <li>WARN_AGE: <strong style="color:var(--white)">7</strong></li>
+              </ul>
+            </div>
+            <div>
+              <div style="font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.1em;">pam_pwquality</div>
+              <ul class="checklist" style="margin-top:6px;">
+                <li>minlen=<strong style="color:var(--white)">10</strong></li>
+                <li>ucredit=<strong style="color:var(--white)">-1</strong> (büyük harf)</li>
+                <li>dcredit=<strong style="color:var(--white)">-1</strong> (rakam)</li>
+                <li>maxrepeat=<strong style="color:var(--white)">3</strong></li>
+                <li>difok=<strong style="color:var(--white)">7</strong></li>
+                <li>usercheck=<strong style="color:var(--white)">1</strong></li>
+                <li>enforce_for_root</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-8">
+          <div class="q-block" style="margin-bottom:0;">
+            <div class="q">S: chage -l kullanıcıadı çıktısı ne gösterir?</div>
+            <div class="a">Son parola değişim tarihi, sonraki zorunlu değişim, uyarı günü. <strong>chage --maxdays 30</strong> ile mevcut kullanıcılara uygulandı.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     SLIDE 7 — MONİTORİNG + SERVİS MİMARİSİ
+══════════════════════════════════════════════════════ -->
+<div class="slide" id="slide-7">
+  <div class="content">
+    <div class="slide-label">Bölüm VII · İzleme Sistemi</div>
+    <h2>monitoring.sh <span class="accent">&</span> Systemd</h2>
+
+    <div class="grid-2 mt-20">
+      <div>
+        <h3>Script Çıktısı</h3>
+        <div class="terminal-wrap">
+          <div class="terminal-bar">
+            <span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span>
+            <span class="title">wall broadcast</span>
+          </div>
+          <div class="code-block" style="font-size:11px; line-height:1.8;">
+<span class="out">#Architecture: Linux born2beroot 6.1.0 ...</span>
+<span class="hl">#CPU physical : 1</span>
+<span class="hl">#vCPU : 1</span>
+<span class="out">#Memory Usage: 312/987MB (31.61%)</span>
+<span class="out">#Disk Usage: 2/30Gb (8%)</span>
+<span class="hl">#CPU load: 0.3%</span>
+<span class="out">#Last boot: 2025-05-21 09:00</span>
+<span class="hl">#LVM use: yes</span>
+<span class="out">#Connections TCP : 2 ESTABLISHED</span>
+<span class="out">#User log: 1</span>
+<span class="hl">#Network: IP 10.0.2.15 (08:00:27:...)</span>
+<span class="out">#Sudo : 14 cmd</span>
+<span class="hl">#Docker Containers Running: 4</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <h3>Crontab Yerine Systemd Timer</h3>
+        <div class="card">
+          <ul class="checklist">
+            <li>Boot'tan 1dk sonra ilk çalışma (<code class="inline-tag">OnBootSec=1min</code>)</li>
+            <li>Sonraki çalışma: önceki bittikten 10dk sonra</li>
+            <li><code class="inline-tag">OnUnitActiveSec=10min</code></li>
+            <li>systemctl ile start/stop/status takibi</li>
+            <li>journalctl ile loglama otomatik</li>
+          </ul>
+        </div>
+
+        <div class="card amber-top">
+          <h3 style="color:var(--amber); margin-bottom:6px;">Wall Fix — SSH Sorunu</h3>
+          <ul class="checklist">
+            <li><code class="inline-tag a">wall-broadcast.service</code> oluşturuldu</li>
+            <li>Boot'ta <code>/dev/pts/*</code> terminallerini açar</li>
+            <li>PAM + <code>mesg_fix.sh</code> hook eklendi</li>
+            <li>Her SSH girişinde terminal otomatik açılır</li>
+            <li>SSH oturumlarına artık wall ulaşır ✓</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-16">
+      <div class="q-block">
+        <div class="q">S: Crontab yerine neden systemd timer kullandınız?</div>
+        <div class="a">
+          Systemd timer daha entegre: <strong>journalctl</strong> ile loglar otomatik toplanır,
+          servis bağımlılıkları tanımlanabilir, <strong>systemctl status</strong> ile anlık durum görülür.
+          Crontab bu görünürlükten yoksundur.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     SLIDE 8 — BONUS: WORDPRESS STACK
+══════════════════════════════════════════════════════ -->
+<div class="slide" id="slide-8">
+  <div class="content">
+    <div class="slide-label">Bölüm VIII · Bonus</div>
+    <h2>WordPress <span class="accent">Stack</span> — Docker</h2>
+
+    <div class="mt-20" style="display:flex; flex-direction:column; gap:14px;">
+
+      <div class="card blue-top">
+        <h3 style="color:var(--blue)">Mimari: docker-compose ile 4 servis</h3>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+          <span class="tag green">MariaDB :3306</span>
+          <span class="tag amber">WordPress FPM :9000</span>
+          <span class="tag blue">lighttpd :80</span>
+          <span class="tag green">Caddy :80/:443</span>
+        </div>
+        <p style="margin-top:10px; font-size:12px;">
+          Caddy reverse proxy olarak dışarıya açıktır. lighttpd dahili ağda,
+          WordPress PHP-FPM olarak çalışır. MariaDB hiçbir porta açık değildir.
+        </p>
+      </div>
+
+      <div class="grid-2">
+        <div>
+          <div class="terminal-wrap">
+            <div class="terminal-bar">
+              <span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span>
+              <span class="title">lighttpd.conf (FastCGI)</span>
+            </div>
+            <div class="code-block" style="font-size:11px;">
+<span class="cmd">fastcgi.server = ( ".php" => ((</span>
+<span class="hl">    "host" => "wordpress",</span>
+<span class="hl">    "port" => 9000,</span>
+<span class="cmd">    "broken-scriptfilename" => "enable"</span>
+<span class="cmd">)))</span>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="terminal-wrap">
+            <div class="terminal-bar">
+              <span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span>
+              <span class="title">Caddyfile</span>
+            </div>
+            <div class="code-block" style="font-size:11px;">
+<span class="cmd">localhost {</span>
+<span class="hl">    reverse_proxy lighttpd:80</span>
+<span class="cmd">}</span>
+            </div>
+          </div>
+          <div class="mt-8">
+            <ul class="checklist">
+              <li>NGINX/Apache2 yok → proje şartı ✓</li>
+              <li>Caddy = ekstra servis seçimi ✓</li>
+              <li>UFW: 80 + 443 açıldı</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="q-block" style="margin-bottom:0;">
+        <div class="q">S: Neden Docker kullandınız, doğrudan kurulum yerine?</div>
+        <div class="a">
+          Servisler birbirinden izole çalışır, silmek/güncellemek kolaydır, tek komutla (<strong>docker compose up -d</strong>)
+          tüm stack ayağa kalkar. Servis çöktüğünde <strong>restart: unless-stopped</strong> otomatik yeniden başlatır.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     SLIDE 9 — SÖYLEŞI SORULARI
+══════════════════════════════════════════════════════ -->
+<div class="slide" id="slide-9">
+  <div class="content">
+    <div class="slide-label">Bölüm IX · Sık Sorulan Sorular</div>
+    <h2>Söyleşi <span class="accent">Soruları</span></h2>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:20px;">
+
+      <div class="q-block">
+        <div class="q">S: sudo ile su arasındaki fark?</div>
+        <div class="a"><strong>su</strong> tamamen başka kullanıcıya geçer (şifre lazım). <strong>sudo</strong> tek komutu o kullanıcı adına çalıştırır, log tutar, kural bazlı kısıtlanabilir.</div>
+      </div>
+
+      <div class="q-block">
+        <div class="q">S: Neden port 22 değil 4242?</div>
+        <div class="a">Güvenlik: otomatik tarama botları önce 22'yi tarar. 4242, standart olmayan bir port seçimidir. Ayrıca proje şartıdır.</div>
+      </div>
+
+      <div class="q-block">
+        <div class="q">S: Hostname nasıl değiştirilir?</div>
+        <div class="a"><strong>sudo hostnamectl set-hostname yeniisim</strong> ardından <strong>/etc/hosts</strong> güncellenir, reboot gerekir.</div>
+      </div>
+
+      <div class="q-block">
+        <div class="q">S: Yeni kullanıcı ekle ve gruba ekle?</div>
+        <div class="a"><strong>sudo adduser ali42</strong> → <strong>sudo usermod -aG user42 ali42</strong> → <strong>groups ali42</strong> ile doğrula.</div>
+      </div>
+
+      <div class="q-block">
+        <div class="q">S: Sudo loglarını nasıl görürsün?</div>
+        <div class="a"><strong>sudo cat /var/log/sudo/sudo.log</strong> — her sudo komutu giriş ve çıktısıyla loglanır.</div>
+      </div>
+
+      <div class="q-block">
+        <div class="q">S: LVM'de yeni bir bölüm nasıl eklenir?</div>
+        <div class="a"><strong>lvcreate -L 2G -n yenibölüm LVMGroup</strong> → <strong>mkfs.ext4 /dev/LVMGroup/yenibölüm</strong> → mount.</div>
+      </div>
+
+      <div class="q-block">
+        <div class="q">S: UFW kuralı nasıl silinir?</div>
+        <div class="a"><strong>sudo ufw status numbered</strong> → kural numarasını bul → <strong>sudo ufw delete [numara]</strong></div>
+      </div>
+
+      <div class="q-block">
+        <div class="q">S: Monitoring scripti ne zaman durur?</div>
+        <div class="a"><strong>sudo systemctl stop monitoring.timer</strong> — timer durdurulur, mevcut çalışma tamamlanır.</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     SLIDE 10 — DEMO CHECKLISTI
+══════════════════════════════════════════════════════ -->
+<div class="slide" id="slide-10">
+  <div class="content">
+    <div class="slide-label">Bölüm X · Demo Sırası</div>
+    <h2>Savunma <span class="accent">Kontrol Listesi</span></h2>
+
+    <div class="grid-3 mt-20">
+      <div class="card">
+        <h3>Zorunlu Doğrulamalar</h3>
+        <ul class="checklist">
+          <li><code class="inline-tag">lsblk</code> — disk yapısı</li>
+          <li><code class="inline-tag">aa-status</code> — AppArmor</li>
+          <li><code class="inline-tag">ufw status numbered</code></li>
+          <li><code class="inline-tag">sudo systemctl status ssh</code></li>
+          <li><code class="inline-tag">hostnamectl</code> — hostname</li>
+          <li><code class="inline-tag">groups kullanici</code></li>
+          <li><code class="inline-tag">chage -l kullanici</code></li>
+          <li><code class="inline-tag">sudo -v</code> doğrulama</li>
+        </ul>
+      </div>
+
+      <div class="card amber-top">
+        <h3 style="color:var(--amber)">İstenebilecek Aksiyonlar</h3>
+        <ul class="checklist">
+          <li>Yeni kullanıcı oluştur</li>
+          <li>Gruba ekle / çıkar</li>
+          <li>Hostname değiştir</li>
+          <li>UFW kuralı ekle / sil</li>
+          <li>Yanlış sudo şifresi dene</li>
+          <li>Sudo log'unu göster</li>
+          <li>Monitoring'i manuel çalıştır</li>
+          <li>Parola politikasını göster</li>
+        </ul>
+      </div>
+
+      <div class="card blue-top">
+        <h3 style="color:var(--blue)">Bonus Demo</h3>
+        <ul class="checklist">
+          <li><code class="inline-tag b">docker ps</code> — containerlar</li>
+          <li>Tarayıcıda WordPress aç</li>
+          <li>Wall mesajının SSH'a geldiğini göster</li>
+          <li><code class="inline-tag b">systemctl status monitoring.timer</code></li>
+          <li>MariaDB'ye bağlan</li>
+          <li>FTP bağlantısı test et</li>
+          <li>Signature.txt dosyasını göster</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="mt-20">
+      <div class="terminal-wrap" style="max-width:600px;">
+        <div class="terminal-bar">
+          <span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span>
+          <span class="title">signature.txt nasıl oluşturulur?</span>
+        </div>
+        <div class="code-block" style="font-size:11px;">
+<span class="comment"># VM kapalıyken, .vdi dosyasının bulunduğu yerde:</span>
+<span class="comment"># Linux / macOS:</span>
+<span class="prompt">$</span> <span class="cmd">sha1sum born2beroot.vdi</span>
+<span class="out">a4b3c2d1e0f9... born2beroot.vdi</span>
+<span class="comment"># Windows:</span>
+<span class="prompt">></span> <span class="cmd">certUtil -hashfile born2beroot.vdi sha1</span>
+<span class="comment"># Çıktıyı signature.txt'e yapıştır</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     SLIDE 11 — SON
+══════════════════════════════════════════════════════ -->
+<div class="slide" id="slide-11">
+  <div class="scanlines"></div>
+  <div class="glow-bg"></div>
+  <div class="content" style="justify-content:center; min-height:80vh; text-align:center; align-items:center;">
+    <div class="slide-label">42 — Born2beroot</div>
+    <h1 style="margin-top:16px; font-size:clamp(2.5rem,6vw,5rem);">
+      Teşekkürler<br><span class="accent">& Sorular?</span>
+    </h1>
+    <p style="margin-top:24px; max-width:480px; font-size:14px;">
+      Sistemin çalıştığını görmek için her şey hazır.
+    </p>
+
+    <div class="grid-3 mt-32" style="text-align:left;">
+      <div class="card">
+        <h3>Zorunlu</h3>
+        <ul class="checklist">
+          <li>Debian + LVM/LUKS ✓</li>
+          <li>SSH 4242 / no-root ✓</li>
+          <li>UFW ✓</li>
+          <li>Parola politikası ✓</li>
+          <li>Sudo config ✓</li>
+          <li>monitoring.sh ✓</li>
+        </ul>
+      </div>
+      <div class="card amber-top">
+        <h3 style="color:var(--amber)">Bonus</h3>
+        <ul class="checklist">
+          <li>LVM 7 bölüm ✓</li>
+          <li>WordPress stack ✓</li>
+          <li>Caddy (ekstra servis) ✓</li>
+          <li>vsftpd ✓</li>
+        </ul>
+      </div>
+      <div class="card blue-top">
+        <h3 style="color:var(--blue)">Özel Çözümler</h3>
+        <ul class="checklist">
+          <li>Systemd timer ✓</li>
+          <li>Wall-broadcast fix ✓</li>
+          <li>Docker compose stack ✓</li>
+          <li>setup.sh otomasyonu ✓</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── NAV ── -->
+<nav>
+  <button class="prev-btn" onclick="changeSlide(-1)">← Önceki</button>
+  <span id="slide-counter">1 / 12</span>
+  <button class="next-btn" onclick="changeSlide(1)">Sonraki →</button>
+</nav>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  let current = 0;
+
+  function showSlide(n) {
+    slides[current].classList.remove('active');
+    current = (n + slides.length) % slides.length;
+    slides[current].classList.add('active');
+    document.getElementById('slide-counter').textContent = `${current + 1} / ${slides.length}`;
+    const pct = ((current) / (slides.length - 1)) * 100;
+    document.getElementById('progressBar').style.width = pct + '%';
+    window.scrollTo(0,0);
+  }
+
+  function changeSlide(dir) { showSlide(current + dir); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') changeSlide(1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   changeSlide(-1);
+  });
+
+  // Touch swipe
+  let ts = 0;
+  document.addEventListener('touchstart', e => ts = e.touches[0].clientX);
+  document.addEventListener('touchend', e => {
+    const diff = ts - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 50) changeSlide(diff > 0 ? 1 : -1);
+  });
+
+  showSlide(0);
+</script>
+</body>
+</html>

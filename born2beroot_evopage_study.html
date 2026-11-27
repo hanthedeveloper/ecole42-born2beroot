@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Born2beRoot Soru-Cevap</title>
+<style>
+:root{--bg:#fbfaf7;--panel:#fff;--ink:#1d1d1b;--muted:#64625b;--line:#e3e0d8;--code:#f2f0ea;--accent:#2f6f5e;--accent-bg:#e7f2ee;--warn:#9a5b00;--warn-bg:#fdf3e1;--q:#245f9e;--q-bg:#e8f0fa}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161714;--panel:#1e1f1c;--ink:#e9e7e1;--muted:#a6a39b;--line:#33342f;--code:#25261f;--accent:#7cc4ad;--accent-bg:#1f2d28;--warn:#e6b25c;--warn-bg:#2d2618;--q:#8ab8ec;--q-bg:#1c2633}}
+:root[data-theme="dark"]{--bg:#161714;--panel:#1e1f1c;--ink:#e9e7e1;--muted:#a6a39b;--line:#33342f;--code:#25261f;--accent:#7cc4ad;--accent-bg:#1f2d28;--warn:#e6b25c;--warn-bg:#2d2618;--q:#8ab8ec;--q-bg:#1c2633}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15.5px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+.wrap{max-width:880px;margin:0 auto;padding:22px 16px 90px}
+h1{font-size:26px;margin:0 0 4px}
+.sub{color:var(--muted);margin:0 0 12px}
+.bar{position:sticky;top:0;z-index:5;background:var(--bg);padding:10px 0;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.bar button{border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:16px;padding:5px 12px;font-size:13px;cursor:pointer}
+.bar button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.jump{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 0}
+.jump a{font-size:12.5px;color:var(--accent);text-decoration:none;border:1px solid var(--line);border-radius:14px;padding:2px 9px;background:var(--panel)}
+h2{font-size:20px;margin:34px 0 4px;color:var(--accent)}
+.what{color:var(--muted);font-size:14px;margin:0 0 10px}
+.card{border:1px solid var(--line);border-radius:10px;background:var(--panel);margin:12px 0;overflow:hidden}
+.q{background:var(--q-bg);padding:10px 14px;font-weight:600;color:var(--ink)}
+.q .n{color:var(--q);margin-right:6px}
+.a{padding:4px 14px 12px}
+.lbl{display:block;font-size:11.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:10px 0 3px}
+.say{background:var(--accent-bg);border-left:4px solid var(--accent);border-radius:6px;padding:8px 12px}
+.trap{background:var(--warn-bg);border-left:4px solid var(--warn);border-radius:6px;padding:8px 12px;font-size:14.5px}
+pre{margin:0;background:var(--code);border-radius:6px;padding:8px 11px;overflow-x:auto;font:13.5px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+code{font:13px ui-monospace,Menlo,Consolas,monospace;background:var(--code);padding:1px 5px;border-radius:4px}
+pre code{background:none;padding:0}
+.c{color:var(--muted)}
+ul{margin:4px 0;padding-left:20px}
+li{margin:2px 0}
+table{border-collapse:collapse;width:100%;font-size:14px;margin:4px 0}
+td,th{border-bottom:1px solid var(--line);padding:5px 8px;text-align:left;vertical-align:top}
+th{color:var(--muted);font-size:12.5px}
+body.hide .a{display:none}
+body.hide .card.show .a{display:block}
+body.hide .q{cursor:pointer}
+body.hide .q::after{content:"  · cevabı göster";color:var(--muted);font-weight:400;font-size:13px}
+body.hide .card.show .q::after{content:"  · gizle"}
+.themebtn{position:fixed;right:14px;bottom:14px;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:20px;padding:6px 12px;font-size:13px;cursor:pointer}
+</style>
+</head>
+<body>
+<button class="themebtn" onclick="var r=document.documentElement;var d=r.getAttribute('data-theme')==='dark'||(!r.getAttribute('data-theme')&&matchMedia('(prefers-color-scheme: dark)').matches);r.setAttribute('data-theme',d?'light':'dark')">Tema</button>
+<div class="wrap">
+<h1>Born2beRoot Savunma Soru-Cevap</h1>
+<p class="sub">Savunma sayfasının sırasıyla: değerlendiricinin isteği, göstereceğin komut, söyleyeceğin cevap ve senin takıldığın tuzaklar. Kendini test etmek için cevapları gizle; soruya tıklayınca o cevap açılır.</p>
+
+<div class="bar">
+<button id="mode">Cevapları gizle (test modu)</button>
+<span class="c" style="font-size:13px">Test modunda önce cevabı yüksek sesle söyle, sonra aç.</span>
+</div>
+<div class="jump">
+<a href="#s0">İmza</a><a href="#s1">Genel sorular</a><a href="#s2">Kurulum</a><a href="#s3">User</a><a href="#s4">Hostname ve bölümler</a><a href="#s5">sudo</a><a href="#s6">UFW</a><a href="#s7">SSH</a><a href="#s8">Script ve cron</a><a href="#s9">Dosya yerleri</a><a href="#s10">Komut kalıpları</a>
+</div>
+
+<!-- ========================================================= -->
+<h2 id="s0">0. Genel talimatlar: imza</h2>
+<p class="what">Değerlendirici repoyu klonlar, signature.txt'i .vdi'nin imzasıyla karşılaştırır. Farklıysa değerlendirme biter.</p>
+
+<div class="card"><div class="q"><span class="n">0.1</span>signature.txt'teki değeri nasıl kontrol ederim, ve VM'i açarsan neden tutmaz?</div><div class="a">
+<span class="lbl">Göster (host'ta, VM kapalıyken)</span>
+<pre><code>sha1sum born2beroot.vdi     <span class="c"># macOS'ta: shasum born2beroot.vdi</span>
+cat signature.txt</code></pre>
+<span class="lbl">Söyle</span>
+<div class="say">signature.txt'te .vdi dosyamın sha1 hash'i var: dosyanın içeriğinden hesaplanan 40 karakterlik bir parmak izi. sha1sum ile dosyanın şu anki hash'i hesaplanıp bununla karşılaştırılıyor. VM açıldığında diske log ve zaman bilgisi yazıldığı için dosya değişir, hash de tamamen değişir.</div>
+<span class="lbl">Tuzak</span>
+<div class="trap">"Hash'lenmiş dosya" deme; hash dosyanın kendisi değil, dosyanın parmak izi.</div>
+</div></div>
+
+<!-- ========================================================= -->
+<h2 id="s1">1. Project Overview: genel sorular</h2>
+<p class="what">Makineye dokunmadan sözlü sorular. Açıklama net değilse değerlendirme burada biter.</p>
+
+<div class="card"><div class="q"><span class="n">1.1</span>Sanal makinen basitçe nasıl çalışıyor? Sanal makinelerin faydası ne?</div><div class="a">
+<span class="lbl">Söyle</span>
+<div class="say">VirtualBox bir Type 2 hypervisor: okul bilgisayarının işlemci, RAM ve diskinden bir kısmını ayırıp Debian'a veriyor. Debian kendini gerçek bir bilgisayarda sanıyor; diski aslında host'taki .vdi dosyası. Faydası: host'tan yalıtılmış bir ortam. İçeride ne bozarsam bozayım host etkilenmez; farklı işletim sistemlerini deneyebilirim, snapshot ve klonla geri dönebilirim, bir fiziksel sunucuda birçok sanal sunucu çalıştırılabilir.</div>
+<span class="lbl">Bil</span>
+<table>
+<tr><th>Tür</th><th>Nerede çalışır</th><th>Örnek</th></tr>
+<tr><td>Type 1</td><td>Doğrudan donanımın üstünde</td><td>KVM, VMware ESXi, Hyper-V</td></tr>
+<tr><td>Type 2</td><td>Bir işletim sisteminin üstünde, uygulama olarak</td><td>VirtualBox, UTM</td></tr>
+</table>
+<span class="lbl">Tuzak</span>
+<div class="trap">"Supervisor" değil <b>hypervisor</b>. İki tür de hypervisor; fark sadece nerede çalıştığı. "Biri hypervisor, diğeri donanım" deme.</div>
+</div></div>
+
+<div class="card"><div class="q"><span class="n">1.2</span>Neden Debian? Debian ile Rocky'nin temel farkları ne?</div><div class="a">
+<span class="lbl">Söyle</span>
+<div class="say">Sistem yönetiminde yeniyim, subject de bu yüzden Debian'ı öneriyor: kurulumu kolay, topluluğu ve dokümantasyonu çok geniş. Rocky, Red Hat'in ücretli sistemi RHEL'in ücretsiz kopyası; şirket sunucularında yaygın, uzun destekli ama kurulumu ve yönetimi daha zor. Temel farklar: Debian .deb paketlerini apt ile, Rocky .rpm paketlerini dnf ile yönetir. Güvenlik modülü Debian'da AppArmor, Rocky'de SELinux. Firewall Debian'da UFW, Rocky'de firewalld.</div>
+<span class="lbl">Bil</span>
+<table>
+<tr><th></th><th>Debian</th><th>Rocky</th></tr>
+<tr><td>Kökeni</td><td>Gönüllü topluluk, 1993; Ubuntu da Debian'dan geliyor</td><td>RHEL'in ücretsiz kopyası; 2021'de CentOS'un yerini doldurmak için çıktı</td></tr>
+<tr><td>Paket</td><td>.deb, apt / dpkg</td><td>.rpm, dnf / rpm</td></tr>
+<tr><td>Güvenlik modülü</td><td>AppArmor</td><td>SELinux</td></tr>
+<tr><td>Firewall</td><td>UFW</td><td>firewalld</td></tr>
+<tr><td>Destek</td><td>~5 yıl</td><td>~10 yıl</td></tr>
+</table>
+<span class="lbl">Tuzak</span>
+<div class="trap">"Rocky daha zor" tek başına cevap değil. Dört somut farkı (RHEL, paket, güvenlik modülü, firewall) mutlaka say.</div>
+</div></div>
+
+<div class="card"><div class="q"><span class="n">1.3</span>apt ile aptitude arasındaki fark ne?</div><div class="a">
+<span class="lbl">Söyle</span>
+<div class="say">dpkg tek bir .deb dosyasını kurar, bağımlılıklarla ilgilenmez. apt ve aptitude dpkg'nin üstünde çalışır; paketi bağımlılıklarıyla birlikte depodan indirip kurar. apt sade, standart bir komut satırı aracı ve Debian'da kurulu gelir. aptitude'un ayrıca menülü bir arayüzü var; bağımlılık çakışmalarında birden fazla çözüm önerip seçtirir ve bir paketi kaldırınca gereksiz kalan bağımlılıkları da kaldırır. Kurulu gelmez.</div>
+</div></div>
+
+<div class="card"><div class="q"><span class="n">1.4</span>AppArmor nedir?</div><div class="a">
+<span class="lbl">Göster</span>
+<pre><code>sudo aa-status    <span class="c"># "apparmor module is loaded" + profil sayısı</span></code></pre>
+<span class="lbl">Söyle</span>
+<div class="say">AppArmor, programların erişebileceği dosya ve kaynakları profillerle sınırlayan bir güvenlik modülü. Program root olarak çalışsa bile profilinin dışına çıkamaz; ele geçirilse bile vereceği zarar sınırlı kalır. İki modu var: enforce engeller ve loglar, complain sadece loglar. Debian'da açılışta çalışıyor.</div>
+<span class="lbl">Tuzak</span>
+<div class="trap">"Virüs programı gibi" deme; hiçbir şey taramıyor, sadece sınır çiziyor. "Root olsa bile" kısmını mutlaka söyle.</div>
+</div></div>
+
+<div class="card"><div class="q"><span class="n">1.5</span>(Sorulursa) SELinux nedir, AppArmor'dan farkı?</div><div class="a">
+<span class="lbl">Söyle</span>
+<div class="say">SELinux da aynı işi yapan, Rocky'de varsayılan güvenlik modülü. AppArmor kuralları dosya yoluna göre yazar, basittir. SELinux her dosyaya, programa ve porta bir etiket yapıştırır ve kuralları etiketler arasında yazar; çok daha ince kontrol sağlar ama öğrenmesi zor.</div>
+</div></div>
+
+<!-- ========================================================= -->
+<h2 id="s2">2. Simple Configuration</h2>
+<p class="what">Grafik arayüz yok, açılışta şifre soruluyor, root olmayan kullanıcıyla giriş, sistem Debian, UFW ve SSH çalışıyor.</p>
+
+<div class="card"><div class="q"><span class="n">2.1</span>Açılışta iki şifre girdin. Hangisi neyin şifresi, neden iki tane?</div><div class="a">
+<span class="lbl">Söyle</span>
+<div class="say">İlki sda5'in disk şifreleme passphrase'i: GRUB şifresiz /boot'tan kernel'i yüklüyor, kernel de sistemin geri kalanının durduğu şifreli sda5'i açmak için bunu soruyor. İkincisi ugpolat'ın giriş şifresi. Biri diske, diğeri hesaba erişimi koruyor; disk dosyası çalınsa bile ilk şifre olmadan okunamaz. Root olmayan kullanıcıyla girdim, prompt'un sonunda $ var; root olsaydı # olurdu.</div>
+</div></div>
+
+<div class="card"><div class="q"><span class="n">2.2</span>Grafik arayüz olmadığını göster.</div><div class="a">
+<span class="lbl">Göster</span>
+<pre><code>dpkg -l | grep -E "xorg|xserver|wayland"   <span class="c"># hiçbir şey basmamalı</span></code></pre>
+<span class="lbl">Söyle</span>
+<div class="say">Kurulumda yazılım seçiminde bütün masaüstü seçeneklerini kaldırdım; makine siyah konsol ve login ekranıyla açılıyor. Grafik sunucusu paketi de kurulu değil.</div>
+</div></div>
+
+<div class="card"><div class="q"><span class="n">2.3</span>Sistemin Debian olduğunu göster.</div><div class="a">
+<span class="lbl">Göster</span>
+<pre><code>head -n 2 /etc/os-release    <span class="c"># PRETTY_NAME="Debian GNU/Linux 13 (trixie)"</span>
+hostnamectl                  <span class="c"># "Operating System: Debian GNU/Linux 13 (trixie)" satırı</span></code></pre>
+<span class="lbl">Tuzak</span>
+<div class="trap"><code>dpkg -l | grep debian</code> işletim sistemini kanıtlamaz, sadece adında "debian" geçen paketleri listeler. Unutursan <code>hostnamectl</code>.</div>
+</div></div>
+
+<div class="card"><div class="q"><span class="n">2.4</span>UFW'nin çalıştığını göster.</div><div class="a">
+<span class="lbl">Göster</span>
+<pre><code>sudo ufw status              <span class="c"># Status: active + 4242 kuralları</span>
+sudo systemctl status ufw    <span class="c"># servis: enabled, active (exited)</span></code></pre>
+<span class="lbl">Söyle</span>
+<div class="say">ufw status firewall'un aktif olduğunu ve kuralları gösteriyor. systemctl tarafında "active (exited)" normal: ufw servisi açılışta kuralları kernel'e yükleyip çıkıyor, kurallar kernel'de çalışmaya devam ediyor. enabled, açılışta otomatik başladığı anlamına geliyor.</div>
+<span class="lbl">Tuzak</span>
+<div class="trap"><code>systemctl ufw status</code> yanlış sıra. Kural: <b>systemctl EYLEM SERVİS</b>. Kurallar systemctl'de değil, <code>ufw status</code>'ta.</div>
+</div></div>
+
+<div class="card"><div class="q"><span class="n">2.5</span>SSH'ın çalıştığını göster.</div><div class="a">
+<span class="lbl">Göster</span>
+<pre><code>sudo systemctl status ssh    <span class="c"># enabled, active (running)</span></code></pre>
+<span class="lbl">Söyle</span>
+<div class="say">enabled açılışta başladığını, active (running) şu an çalıştığını gösteriyor. Alttaki loglarda "Server listening on 0.0.0.0 port 4242" ve ":: port 4242" satırları var: IPv4 ve IPv6'da 4242'yi dinliyor.</div>
+<span class="lbl">Tuzak</span>
+<div class="trap"><code>sudo ssh status</code> servisi göstermez; ssh istemcisi "status" adlı bir makineye bağlanmaya çalışır.</div>
+</div></div>
+
+<!-- ========================================================= -->
+<h2 id="s3">3. User</h2>
+<p class="what">ugpolat'ın grupları, yeni kullanıcı, şifre kuralları ve dosyaları, evaluating grubu, politikanın artı ve eksileri.</p>
+
+<div class="card"><div class="q"><span class="n">3.1</span>Login'inle bir kullanıcı var mı, sudo ve user42 gruplarında mı?</div><div class="a">
+<span class="lbl">Göster</span>
+<pre><code>id ugpolat         <span class="c"># uid=1000(ugpolat) ... groups=...,27(sudo),...,(user42)</span>
+groups ugpolat     <span class="c"># ugpolat : ugpolat ... sudo ... user42</span></code></pre>
+<span class="lbl">Söyle</span>
+<div class="say">id kullanıcının kimliğini gösteriyor: UID'si 1000 ve üye olduğu gruplar; içinde sudo ve user42 var.</div>
+</div></div>
+
+<div class="card"><div class="q"><span class="n">3.2</span>Bütün kullanıcıları listele. Hangileri gerçek kullanıcı, hangileri sistem hesabı?</div><div class="a">
+<span class="lbl">Göster</span>
+<pre><code>compgen -u                  <span class="c"># bütün kullanıcı adları (-u = users)</span>
+cut -d: -f1 /etc/passwd     <span class="c"># aynısı</span>
+cat /etc/passwd             <span class="c"># 3. alan UID</span></code></pre>
+<span class="lbl">Söyle</span>
+<div class="say">root UID 0. 1000'in altındakiler programların kullandığı sistem hesapları; çoğunun kabuğu nologin, yani giriş yapılamıyor. 1000 ve üstü benim oluşturduğum gerçek kullanıcılar.</div>
+</div></div>
+
+<div class="card"><div class="q"><span class="n">3.3</span>Yeni bir kullanıcı oluştur ve kurallara uyan bir şifre ver. Kurala uymayan şifrenin reddedildiğini göster.</div><div class="a">
+<span class="lbl">Göster</span>
+<pre><code>sudo adduser yenikullanici      <span class="c"># şifre politikası tam bu anda kontrol edilir</span>
+sudo passwd yenikullanici       <span class="c"># abc123 dene → BAD PASSWORD, 3 hak, "password unchanged"</span>
+sudo chage -l yenikullanici     <span class="c"># min 2, max 30, uyarı 7</span></code></pre>
+<span class="lbl">Söyle</span>
+<div class="say">BAD PASSWORD mesajı pwquality'den geliyor ve ilk takıldığı kuralı söylüyor. 3 kez sordu çünkü retry=3. sudo ile, yani root olarak denediğim halde reddetti; bu enforce_for_root'un çalıştığını gösteriyor. chage -l ile yeni kullanıcının yaş kurallarının otomatik geldiğini gösterebilirim.</div>
+</div></div>
+
+<div class="card"><div class="q"><span class="n">3.4</span>Bu kuralları nasıl uyguladın? Hangi dosyalar, her biri neyi sağlıyor? Var olan kullanıcılara nasıl uygulandı?</div><div class="a">
+<span class="lbl">Göster</span>
+<pre><code>grep "^PASS_" /etc/login.defs
+grep pwquality /etc/pam.d/common-password
+sudo chage -l ugpolat</code></pre>
+<span class="lbl">Söyle</span>
+<div class="say">İki dosya değiştirdim. /etc/login.defs'te şifre yaşını ayarladım: PASS_MAX_DAYS 30 ile en fazla 30 gün geçerli, PASS_MIN_DAYS 2 ile değiştirdikten sonra en az 2 gün bekleme, PASS_WARN_AGE 7 ile bitmeden 7 gün önce uyarı. Bu dosya sadece yeni kullanıcılara uygulandığı için root ve ugpolat'a chage ile ayrıca verdim. /etc/pam.d/common-password'a pam_pwquality modülünü ekledim: minlen=10 en az 10 karakter, ucredit, lcredit ve dcredit=-1 en az bir büyük harf, küçük harf ve rakam, maxrepeat=3 aynı karakter en fazla 3 kez arka arkaya, usercheck kullanıcı adı yok, difok=7 eski şifreden en az 7 farklı karakter, enforce_for_root kurallar root için de geçerli, retry=3 üç deneme.</div>
+<span class="lbl">Bil</span>
+<ul>
+<li><b>Neden -1?</b> Pozitif değer ödüldür (her büyük harf şifreyi bir karakter uzun sayar), zorunlu değildir. Negatif değer "en az bu kadar olmak zorunda" demektir.</li>
+<li><b>Neden difok root için geçerli değil?</b> Root şifre değiştirirken eski şifre sorulmaz; eski şifre bilinmeyince karşılaştırma yapılamaz.</li>
+<li><b>Neden min 2 gün?</b> Kullanıcı arka arkaya değiştirip eski şifresine dönemesin diye.</li>
+<li>Kurallar sadece şifre değiştirilirken kontrol edilir; bu yüzden ayarlardan sonra root dahil bütün şifreleri değiştirdim.</li>
+</ul>
+<span class="lbl">Tuzak</span>
+<div class="trap">Dosyanın adı <b>common-password</b>, "pam.d/passwd" deme. chage'i söylemeyi unutma. <code>minlen10</code> gibi <code>=</code>'siz yazılan seçenek yok sayılır.</div>
+</div></div>
+
+<div class="card"><div class="q"><span class="n">3.5</span>"evaluating" grubunu oluştur, yeni kullanıcıyı ekle ve grupta olduğunu göster.</div><div class="a">
+<span class="lbl">Göster</span>
+<pre><code>sudo addgroup evaluating                 <span class="c"># grup oluştur</span>
+sudo adduser yenikullanici evaluating    <span class="c"># gruba ekle</span>
+groups yenikullanici                     <span class="c"># kullanıcıdan bak</span>
+getent group evaluating                  <span class="c"># gruptan bak: evaluating:x:1003:yenikullanici</span></code></pre>
+<span class="lbl">Tuzak</span>
+<div class="trap"><b>addgroup</b> grup oluşturur, <b>adduser</b> iki kelimeyle gruba ekler; addgroup'a iki argüman verirsen "fatal" alırsın. Grup adını harf harf kontrol et (<code>evaluating</code>). <code>groups</code> argümansız sadece senin gruplarını gösterir; bütün gruplar için <code>compgen -g</code>.</div>
+</div></div>
+
+<div class="card"><div class="q"><span class="n">3.6</span>Şifre politikasının amacı ne? Avantajları ve dezavantajları?</div><div class="a">
+<span class="lbl">Söyle</span>
+<div class="say">Amaç, kolay tahmin edilen ya da kırılan şifreleri engellemek. Avantajı: uzun ve karışık şifreleri tahmin etmek ve kaba kuvvetle kırmak çok daha zor; sızan bir şifre en fazla 30 gün geçerli kalır; kullanıcı adı veya eski şifreye benzeyen şifreler kullanılamaz. Dezavantajı: sık zorunlu değişim insanları Sifre2026a, Sifre2026b gibi kalıplara ya da şifreyi bir yere yazmaya iter; unutulan şifreler yönetim yükü getirir. Bu yüzden güncel rehberler (NIST gibi) periyodik zorunlu değişim yerine uzun ve sızdırılmamış şifreleri öneriyor.</div>
+<span class="lbl">Tuzak</span>
+<div class="trap">"Subject istediği için" cevabı kabul edilmez. Hem artı hem eksi söylenmeli.</div>
+</div></div>
+
+<!-- ========================================================= -->
+<h2 id="s4">4. Hostname and Partitions</h2>
+<p class="what">Hostname login42 mi; değerlendiricinin login'iyle değiştir, reboot, geri al; bölümleri göster; LVM'i anlat.</p>
+
+<div class="card"><div class="q"><span class="n">4.1</span>Hostname'i göster, benim login'imle değiştir, yeniden başlat, sonra geri al.</div><div class="a">
+<span class="lbl">Göster</span>
+<pre><code>hostname                                  <span class="c"># ugpolat42</span>
+sudo hostnamectl set-hostname yeniad42    <span class="c"># çalışan adı ve /etc/hostname'i değiştirir</span>
+sudo nano /etc/hosts                      <span class="c"># 127.0.1.1 satırını yeniad42 yap</span>
+sudo reboot
+hostname                                  <span class="c"># yeniad42</span>
+<span class="c"># aynı adımları ugpolat42 ile tekrarla</span></code></pre>
+<span class="lbl">Söyle</span>
+<div class="say">İki yer değişmeli: hostnamectl adı ve /etc/hostname'i değiştiriyor; /etc/hosts'taki 127.0.1.1 satırını elle değiştiriyorum. hosts'u değiştirmezsem sudo "unable to resolve host" uyarısı verir, çünkü kendi makine adını bir adrese çözmeye çalışıyor. Prompt yeni oturumda güncellendiği için reboot gerekiyor.</div>
+</div></div>
+
+<div class="card"><div class="q"><span class="n">4.2</span>Bölümleri nasıl görürsün? Göster ve anlat.</div><div class="a">
+<span class="lbl">Göster</span>
+<pre><code>lsblk     <span class="c"># ls + blk = list block devices</span></code></pre>
+<span class="lbl">Söyle</span>
+<div class="say">sda1 şifresiz /boot; GRUB kernel'i buradan okuduğu için şifresiz olmalı. sda2 extended bölüm, sadece sda5'i içinde taşıyan bir kap, o yüzden 1K. sda5 LUKS ile şifreli; çözülmüş hali sda5_crypt. Onun içinde LVMGroup ve root, home, swap, var, srv, tmp, var-log logical volume'ları var. TYPE sütununda part bölüm, crypt şifreli alan, lvm logical volume demek.</div>
+<span class="lbl">Bil</span>
+<div class="trap">sda2 ve sda5'in sebebi MBR bölüm tablosu: en fazla 4 primary bölüm olabildiği için bir bölüm extended yapılıyor, logical bölümler onun içinde ve 5'ten başlayarak numaralanıyor. Bu LVM'le ilgili değil.</div>
+</div></div>
+
+<div class="card"><div class="q"><span class="n">4.3</span>LVM nasıl çalışır, neden faydalı?</div><div class="a">
+<span class="lbl">Söyle</span>
+<div class="say">LVM, diskle dosya sistemleri arasında esnek bir katman. Şifresi çözülmüş sda5'i physical volume olarak LVM'e verdim; bu LVMGroup adlı volume group'u, yani bir alan havuzunu oluşturdu. Havuzdan root, home, swap gibi logical volume'lar kestim. Faydası: bunlar sonradan sistem çalışırken büyütülüp küçültülebilir, havuza yeni disk eklenebilir; normal bölümlerde bu zor. Her biri ayrı olduğu için biri dolarsa (örneğin /var/log) diğerleri etkilenmiyor. Hepsi şifreli katmanın içinde, tek passphrase açıyor.</div>
+<span class="lbl">Bil</span>
+<p><b>PV</b> (Physical Volume) ham alan → <b>VG</b> (Volume Group) havuz → <b>LV</b> (Logical Volume) havuzdan kesilen parça. "Logical group" değil.</p>
+</div></div>
+
+<!-- ========================================================= -->
+<h2 id="s5">5. SUDO</h2>
+<p class="what">sudo kurulu mu, yeni kullanıcıyı sudo grubuna ekle, sudo'yu örnekle anlat, kuralları göster, logları göster ve güncellendiğini kanıtla.</p>
+
+<div class="card"><div class="q"><span class="n">5.1</span>sudo'nun kurulu olduğunu göster ve yeni kullanıcıyı sudo grubuna ekle.</div><div class="a">
+<span class="lbl">Göster</span>
+<pre><code>dpkg -l | grep sudo                <span class="c"># başında ii = kurulu</span>
+sudo adduser yenikullanici sudo
+getent group sudo                  <span class="c"># sudo:x:27:ugpolat,yenikullanici</span></code></pre>
+<span class="lbl">Bil</span>
+<div class="trap">"X kurulu mu?" sorusunun cevabı her zaman <code>dpkg -l | grep X</code>; sudo, ufw ve ssh için üç kez gelir. getent'te veritabanı adları tekil: <code>passwd</code> ve <code>group</code>.</div>
+</div></div>
+
+<div class="card"><div class="q"><span class="n">5.2</span>sudo'nun amacı ve çalışması, kendi seçtiğin örneklerle.</div><div class="a">
+<span class="lbl">Göster</span>
+<pre><code>cat /etc/shadow         <span class="c"># Permission denied</span>
+sudo cat /etc/shadow    <span class="c"># şifreni sorar, okur</span></code></pre>
+<span class="lbl">Söyle</span>
+<div class="say">sudo, sudo grubundaki kullanıcıların kendi şifreleriyle tek bir komutu root yetkisiyle çalıştırmasını sağlar. Örneğin cat /etc/shadow normal kullanıcıyla Permission denied veriyor, sudo ile okuyor; sudo apt update ile paket listesini yenilemek de root ister. su - root'un şifresiyle tamamen root yapar; sudo'nun avantajı root şifresinin paylaşılmaması, yetkinin sadece o komut için kullanılması ve her komutun kimin çalıştırdığıyla loglanması.</div>
+<span class="lbl">Tuzak</span>
+<div class="trap">Sayfa açıkça "örneklerle" diyor; örnek vermeden geçme.</div>
+</div></div>
+
+<div class="card"><div class="q"><span class="n">5.3</span>Subject'in sudo kurallarını nasıl uyguladığını göster. Hangi dosya, her satır ne yapıyor?</div><div class="a">
+<span class="lbl">Göster</span>
+<pre><code>sudo visudo          <span class="c"># ya da: sudo cat /etc/sudoers</span></code></pre>
+<span class="lbl">Söyle</span>
+<div class="say">Dosya /etc/sudoers; sadece visudo ile düzenlenir, çünkü visudo geçici bir kopyayı açıp kaydetmeden önce yazım hatası kontrolü yapıyor. Hatalı bir sudoers sudo'yu tamamen bozar.</div>
+<table>
+<tr><th>Satır</th><th>Ne yapar</th></tr>
+<tr><td><code>passwd_tries=3</code></td><td>Yanlış şifrede 3 deneme</td></tr>
+<tr><td><code>badpass_message="..."</code></td><td>Yanlış şifrede özel mesaj</td></tr>
+<tr><td><code>log_input,log_output</code></td><td>Klavyeden yazılanlar ve ekrana basılanlar kaydedilir</td></tr>
+<tr><td><code>logfile="/var/log/sudo/sudo.log"</code></td><td>Her komutun özeti: kim, ne zaman, hangi terminalden, ne çalıştırdı</td></tr>
+<tr><td><code>iolog_dir="/var/log/sudo"</code></td><td>Girdi/çıktı kayıtları da bu klasöre</td></tr>
+<tr><td><code>requiretty</code></td><td>sudo sadece gerçek bir terminalden çalışır; terminalsiz scriptler sudo kullanamaz</td></tr>
+<tr><td><code>secure_path="..."</code></td><td>sudo komutları sadece bu klasörlerde aranır; PATH'e konan sahte bir program root olarak çalıştırılamaz</td></tr>
+<tr><td><code>%sudo ALL=(ALL:ALL) ALL</code></td><td>sudo grubundaki herkes, her makinede, her kullanıcı olarak, her komutu çalıştırabilir</td></tr>
+</table>
+<span class="lbl">Bil</span>
+<p>Başlıkta <code>/etc/sudoers.tmp</code> yazması normal: visudo'nun geçici kopyası. <code>env_reset</code>, <code>mail_badpass</code>, <code>use_pty</code> Debian'ın kendi varsayılanları. Değiştirmediysen Ctrl+X ile çık.</p>
+</div></div>
+
+<div class="card"><div class="q"><span class="n">5.4</span>/var/log/sudo/ var mı, içinde dosya var mı? Geçmişi göster, sonra bir sudo komutu çalıştırıp logun güncellendiğini göster.</div><div class="a">
+<span class="lbl">Göster</span>
+<pre><code>sudo ls /var/log/sudo               <span class="c"># 00  seq  sudo.log</span>
+sudo cat /var/log/sudo/sudo.log     <span class="c"># komut geçmişi</span>
+sudo ls                             <span class="c"># bir komut çalıştır</span>
+sudo tail -n 4 /var/log/sudo/sudo.log   <span class="c"># son kayıtta yeni komut</span></code></pre>
+<span class="lbl">Söyle</span>
+<div class="say">sudo.log her komutun kaydı, 00 klasörü girdi/çıktı kayıtları, seq kayıt sayacı. Her satırda tarih, kullanıcı, TTY (hangi terminal), PWD (hangi klasör), USER=root (hangi yetkiyle), TSID (girdi/çıktı kaydının numarası) ve COMMAND var. Son satır, logu okumak için çalıştırdığım komutun kendisi; log anında güncelleniyor.</div>
+<span class="lbl">Tuzak</span>
+<div class="trap">Dosya için <code>cat</code>, klasör için <code>ls</code>. <code>cat /var/log/sudo</code> "Is a directory" verir; <code>sudo /var/log/sudo</code> klasörü komut sanır.</div>
+</div></div>
+
+<!-- ========================================================= -->
+<h2 id="s6">6. UFW</h2>
+<p class="what">Kurulu ve çalışıyor mu, UFW nedir, kurallar, 8080 ekle-listele-sil.</p>
+
+<div class="card"><div class="q"><span class="n">6.1</span>UFW kurulu ve çalışıyor mu? UFW nedir, neden önemli?</div><div class="a">
+<span class="lbl">Göster</span>
+<pre><code>dpkg -l | grep ufw
+sudo ufw status</code></pre>
+<span class="lbl">Söyle</span>
+<div class="say">UFW, makineye gelen bağlantıları kurallarla filtreleyen bir firewall arayüzü; asıl filtrelemeyi kernel yapıyor, UFW kurallarını basit komutlarla yazmamı sağlıyor. Varsayılan politika gelen her şeyi reddetmek, giden her şeye izin vermek; sadece SSH için açtığım 4242 içeri alınıyor. Önemi: bir program farkında olmadan bir port açsa bile dışarıdan ulaşılamaz, saldırı yüzeyi küçülür.</div>
+<span class="lbl">Bil</span>
+<p>Firewall bağlantı oluşturmaz, sadece engeller. Bağlantı için o portu dinleyen bir program da gerekir; 8080'i açsam bile dinleyen program olmadığı için kimse bağlanamaz. UFW'nin Rocky karşılığı firewalld: zone (güven bölgesi) mantığıyla çalışır, daha esnek ama karmaşık.</p>
+</div></div>
+
+<div class="card"><div class="q"><span class="n">6.2</span>Aktif kuralları listele. 8080 için kural ekle, göster, sonra sil.</div><div class="a">
+<span class="lbl">Göster</span>
+<pre><code>sudo ufw status numbered     <span class="c"># [1] 4242, [2] 4242 (v6)</span>
+sudo ufw allow 8080
+sudo ufw status numbered     <span class="c"># [2] 8080 ve [4] 8080 (v6) eklendi</span>
+sudo ufw delete 2            <span class="c"># y ile onayla</span>
+sudo ufw status numbered     <span class="c"># numaralar kaydı: 8080 (v6) artık 3</span>
+sudo ufw delete 3
+sudo ufw status numbered     <span class="c"># sadece 4242 kaldı</span></code></pre>
+<span class="lbl">Tuzak</span>
+<div class="trap">IPv4 ve IPv6 kuralları ayrı numaralar; biri silinince alttakiler kayar. Her silmeden önce yeniden listele, yoksa 4242'yi silebilirsin. Kısa yol: <code>sudo ufw delete allow 8080</code> ikisini birden siler. Komutu unutursan <code>sudo ufw</code> yaz, alt komutların listesini basar.</div>
+</div></div>
+
+<!-- ========================================================= -->
+<h2 id="s7">7. SSH</h2>
+<p class="what">Kurulu ve çalışıyor mu, SSH nedir, sadece 4242, yeni kullanıcıyla bağlan, root giremez.</p>
+
+<div class="card"><div class="q"><span class="n">7.1</span>SSH kurulu ve çalışıyor mu? SSH nedir, neden önemli?</div><div class="a">
+<span class="lbl">Göster</span>
+<pre><code>dpkg -l | grep ssh             <span class="c"># openssh-server satırı ii</span>
+sudo systemctl status ssh      <span class="c"># active (running)</span></code></pre>
+<span class="lbl">Söyle</span>
+<div class="say">SSH, başka bir makinenin terminaline şifreli bir bağlantıyla uzaktan erişmeyi sağlayan protokol. VM'de sshd sunucusu dinliyor, host'taki ssh istemcisi bağlanıyor. Önemi: şifre dahil bütün trafik şifreleniyor, ağı dinleyen biri bir şey okuyamıyor; eskiden kullanılan telnet her şeyi açık gönderiyordu. Sunucular fiziksel erişim olmadan böyle güvenle yönetiliyor.</div>
+</div></div>
+
+<div class="card"><div class="q"><span class="n">7.2</span>SSH sadece 4242'yi mi kullanıyor? Root girişi kapalı mı?</div><div class="a">
+<span class="lbl">Göster</span>
+<pre><code>sudo grep Port /etc/ssh/sshd_config              <span class="c"># Port 4242</span>
+sudo grep PermitRootLogin /etc/ssh/sshd_config   <span class="c"># PermitRootLogin no</span>
+sudo ss -tunlp                                   <span class="c"># sshd sadece :4242'de</span></code></pre>
+<span class="lbl">Söyle</span>
+<div class="say">Ayar dosyası /etc/ssh/sshd_config. İki satırın başındaki # işaretini kaldırıp değiştirdim; # olan satırlar yorumdur, okunmaz. 4242'nin sebebi: 22'yi tarayan otomatik botların gürültüsünden kurtulmak. Root girişi kapalı çünkü root her sistemde bulunan, adı bilinen ve ilk saldırılan hesap; kapalıyken saldırganın gerçek bir kullanıcı adı ve şifre bilmesi gerekir, herkes kendi adıyla girdiği için de kim ne yaptı belli olur.</div>
+<span class="lbl">Bil</span>
+<p><code>ss -tunlp</code>: t TCP, u UDP, n port numarası olarak, l sadece dinleyenler, p hangi program. Dosya kuralı: program ssh → klasör /etc/ssh/, sunucu (d = daemon) → sshd_config.</p>
+</div></div>
+
+<div class="card"><div class="q"><span class="n">7.3</span>Yeni kullanıcıyla SSH'tan bağlan. Root ile bağlanılamadığını göster.</div><div class="a">
+<span class="lbl">Göster (host terminalinde)</span>
+<pre><code>ssh -p 10022 yenikullanici@127.0.0.1    <span class="c"># bağlanır; çıkmak: exit veya Ctrl+D</span>
+ssh -p 10022 root@127.0.0.1             <span class="c"># şifre doğru olsa bile Permission denied</span></code></pre>
+<span class="lbl">Söyle</span>
+<div class="say">VM NAT arkasında; VirtualBox onu kendi özel ağına koyuyor (10.0.2.15) ve host oraya doğrudan ulaşamıyor. Bu yüzden VirtualBox'ta host'un 10022 portunu VM'in 4242'sine yönlendirdim. -p bağlanılacak port; 127.0.0.1 host'un kendisi. Bağlantı 10022'ye gidiyor, VirtualBox onu VM'in 4242'sine taşıyor, sshd karşılıyor. Root denemesi PermitRootLogin no yüzünden reddediliyor; systemctl status ssh loglarında "Failed password for root from 10.0.2.2" satırları görünüyor. 10.0.2.2, NAT'ta host'un VM'e görünen adresi.</div>
+<span class="lbl">Tuzak</span>
+<div class="trap">Yönlendirmeyi VM değil VirtualBox yapıyor. Ctrl+C oturumu kapatmaz; <code>exit</code>.</div>
+</div></div>
+
+<!-- ========================================================= -->
+<h2 id="s8">8. Script monitoring ve cron</h2>
+<p class="what">Script'in kodunu göstererek anlat, cron nedir, 10 dakikada bir nasıl ayarladın, her dakikaya çevir, script'e dokunmadan açılışta çalışmasın, reboot sonrası script yerinde ve aynı mı.</p>
+
+<div class="card"><div class="q"><span class="n">8.1</span>Script'in kodunu göster ve nasıl çalıştığını anlat.</div><div class="a">
+<span class="lbl">Göster</span>
+<pre><code>sudo cat /usr/local/bin/monitoring.sh
+sudo bash /usr/local/bin/monitoring.sh    <span class="c"># çıktı VM konsolunda</span></code></pre>
+<span class="lbl">Söyle</span>
+<div class="say">Script iki kısımdan oluşuyor. Üstteki her satır bir bilgiyi bir komutla topluyor ve değişkene koyuyor: $( ) içindeki komut çalışıyor, çıktısı değişkene yazılıyor. Bilgileri süzmek için grep, saymak için wc, bir satırdan sütun almak için awk kullanıyorum. En sondaki wall, bu değişkenleri bir metnin içine yerleştirip oturum açmış bütün terminallere basıyor. cron da script'i her 10 dakikada bir root olarak çalıştırıyor.</div>
+<span class="lbl">Satır satır (değerlendirici bir satırı gösterirse)</span>
+<table>
+<tr><th>Değişken</th><th>Ne bulur</th><th>Komut</th></tr>
+<tr><td>arc</td><td>Mimari ve kernel sürümü</td><td><code>uname -a</code> (a = all)</td></tr>
+<tr><td>pcpu</td><td>Fiziksel işlemci sayısı</td><td>/proc/cpuinfo'daki "physical id" satırları; sort ve uniq ile tekrarlar teke iner, wc -l sayar</td></tr>
+<tr><td>vcpu</td><td>Sanal işlemci sayısı</td><td>"processor" ile başlayan satırlar, wc -l</td></tr>
+<tr><td>fram / uram</td><td>Toplam / kullanılan RAM (MB)</td><td><code>free -m</code>, awk ile Mem: satırının 2. / 3. parçası</td></tr>
+<tr><td>pram</td><td>RAM kullanım yüzdesi</td><td>kullanılan / toplam × 100, printf %.2f</td></tr>
+<tr><td>fdisk / udisk / pdisk</td><td>Toplam disk (GB) / kullanılan (MB) / yüzde</td><td><code>df</code>; grep ile gerçek diskler, /boot hariç; awk ile toplanıyor</td></tr>
+<tr><td>cpul</td><td>İşlemci kullanımı</td><td><code>top -bn1</code>; kullanıcı + sistem yüzdesi</td></tr>
+<tr><td>lb</td><td>Son açılış</td><td><code>who -b</code> (b = boot)</td></tr>
+<tr><td>lvmt / lvmu</td><td>LVM kullanılıyor mu</td><td>lsblk'de "lvm" satırları sayılıyor; 0 değilse yes</td></tr>
+<tr><td>ctcp</td><td>TCP bağlantıları</td><td>/proc/net/sockstat; kernel'in bağlantı istatistikleri</td></tr>
+<tr><td>ulog</td><td>Oturum açmış kullanıcı sayısı</td><td><code>users | wc -w</code></td></tr>
+<tr><td>ip / mac</td><td>IP ve MAC adresi</td><td><code>hostname -I</code> / <code>ip link show</code> içindeki link/ether</td></tr>
+<tr><td>cmds</td><td>sudo ile çalıştırılan komut sayısı</td><td><code>journalctl _COMM=sudo</code>; COMMAND satırları sayılıyor</td></tr>
+</table>
+<span class="lbl">Bil</span>
+<p>awk satırı boşluklardan böler: Mem: satırında <code>$1</code> "Mem:" yazısı, <code>$2</code> total, <code>$3</code> used, <code>$4</code> free. <code>if [ $lvmt -eq 0 ]; then echo no; else echo yes; fi</code>: eşitse no, değilse yes; fi if'in bittiği yer. <code>${fram}MB</code>'daki süslü parantez değişken adının nerede bittiğini gösterir.</p>
+</div></div>
+
+<div class="card"><div class="q"><span class="n">8.2</span>cron nedir? Script'i 10 dakikada bir nasıl ayarladın?</div><div class="a">
+<span class="lbl">Göster</span>
+<pre><code>sudo crontab -u root -l     <span class="c"># */10 * * * * bash /usr/local/bin/monitoring.sh</span></code></pre>
+<span class="lbl">Söyle</span>
+<div class="say">cron, zamanlanmış görevleri çalıştıran bir servis; her dakika başında görev tablolarına bakıp zamanı gelen komutları çalıştırıyor. Her kullanıcının kendi tablosu (crontab) var; görevi root'un tablosuna koydum, çünkü script'in bazı satırları, örneğin journalctl, root yetkisi istiyor. -u root root'un tablosu, -e düzenle, -l listele. Satırdaki alanlar sırayla dakika, saat, ayın günü, ay ve haftanın günü. */10 dakikası 10'un katı olunca demek; diğer alanlardaki * her değer, yani her saat, her gün.</div>
+<span class="lbl">Tuzak</span>
+<div class="trap">Yıl alanı yok. <code>*</code> "umrumuzda değil" değil, "her değer". */10 saatin 0, 10, 20, 30, 40, 50. dakikaları; açılıştan 10 dakika sonra değil.</div>
+</div></div>
+
+<div class="card"><div class="q"><span class="n">8.3</span>Script'i her dakika çalışacak hale getir.</div><div class="a">
+<span class="lbl">Göster</span>
+<pre><code>sudo crontab -u root -e     <span class="c"># */10'u * (ya da */1) yap, kaydet</span>
+<span class="c"># bir dakika içinde konsola mesaj düşer</span></code></pre>
+<span class="lbl">Söyle</span>
+<div class="say">Script'e dokunmuyorum, sadece cron tablosundaki zamanlamayı değiştiriyorum. * ve */1 aynı anlama geliyor: her dakika.</div>
+</div></div>
+
+<div class="card"><div class="q"><span class="n">8.4</span>Script'i değiştirmeden, sunucu açıldığında artık çalışmamasını sağla. Reboot sonrası kontrol edeceğim.</div><div class="a">
+<span class="lbl">Göster</span>
+<pre><code>sudo systemctl disable cron     <span class="c"># açılışta başlamasın</span>
+sudo systemctl stop cron        <span class="c"># şu an da dursun</span>
+sudo reboot
+sudo systemctl status cron      <span class="c"># inactive (dead), disabled</span>
+ls -l /usr/local/bin/monitoring.sh   <span class="c"># yerinde, izinleri ve tarihi aynı</span></code></pre>
+<span class="lbl">Söyle</span>
+<div class="say">stop cron'u sadece şu an durdurur; açılışta otomatik başlayacak şekilde ayarlı olduğu için reboot sonrası yine başlardı. disable açılışta başlamasını engelliyor. Reboot sonrası cron çalışmıyor, script ise aynı yerde; ls -l izinlerini, sahibini ve son değişiklik tarihini gösteriyor, tarih eski olduğu için script'e dokunulmadığı belli.</div>
+<span class="lbl">Tuzak</span>
+<div class="trap">Sadece <code>stop</code> yetmez; değerlendirici reboot ile test ediyor. Savunmadan sonra geri al: <code>sudo systemctl enable cron</code>, <code>sudo systemctl start cron</code>, crontab satırını */10'a döndür.</div>
+</div></div>
+
+<!-- ========================================================= -->
+<h2 id="s9">9. Dosya yerleri</h2>
+<p class="what">İki kural: ayar dosyaları <code>/etc</code> altında ve genelde programın adını taşır; loglar <code>/var/log</code> altında.</p>
+<div class="card"><div class="q"><span class="n">9.1</span>Hangi şey hangi dosyada?</div><div class="a">
+<table>
+<tr><th>Ne</th><th>Dosya</th><th>Nasıl açılır</th></tr>
+<tr><td>SSH portu ve root girişi</td><td><code>/etc/ssh/sshd_config</code></td><td><code>sudo nano</code></td></tr>
+<tr><td>sudo kuralları</td><td><code>/etc/sudoers</code></td><td><code>sudo visudo</code> (nano ile açma)</td></tr>
+<tr><td>Şifre yaşı</td><td><code>/etc/login.defs</code></td><td><code>sudo nano</code></td></tr>
+<tr><td>Şifre içeriği</td><td><code>/etc/pam.d/common-password</code></td><td><code>sudo nano</code></td></tr>
+<tr><td>Hostname</td><td><code>/etc/hostname</code>, <code>/etc/hosts</code></td><td>hostnamectl + <code>sudo nano /etc/hosts</code></td></tr>
+<tr><td>Kullanıcılar</td><td><code>/etc/passwd</code></td><td><code>cat</code></td></tr>
+<tr><td>Şifre hash'leri</td><td><code>/etc/shadow</code> (gölge: sadece root)</td><td><code>sudo cat</code></td></tr>
+<tr><td>Gruplar</td><td><code>/etc/group</code></td><td><code>cat</code></td></tr>
+<tr><td>Sistem kimliği</td><td><code>/etc/os-release</code></td><td><code>head -n 2</code></td></tr>
+<tr><td>Script</td><td><code>/usr/local/bin/monitoring.sh</code></td><td><code>sudo nano</code></td></tr>
+<tr><td>sudo logları</td><td><code>/var/log/sudo/</code></td><td><code>sudo ls</code>, <code>sudo cat .../sudo.log</code></td></tr>
+<tr><td>cron tablosu</td><td>(komutla) <code>sudo crontab -u root -e</code></td><td></td></tr>
+</table>
+<div class="trap">Dosya yolunu tek başına yazmak komut değildir (<code>sudo /etc/ssh/sshd_config</code> hata verir). Başına nano, cat veya grep koy.</div>
+</div></div>
+
+<!-- ========================================================= -->
+<h2 id="s10">10. Komut kalıpları</h2>
+<div class="card"><div class="q"><span class="n">10.1</span>Unutunca bunları hatırla</div><div class="a">
+<table>
+<tr><th>Soru</th><th>Kalıp</th></tr>
+<tr><td>X kurulu mu?</td><td><code>dpkg -l | grep X</code></td></tr>
+<tr><td>X servisi çalışıyor mu?</td><td><code>sudo systemctl status X</code> (EYLEM SERVİS sırası)</td></tr>
+<tr><td>Açılışta başlasın / başlamasın</td><td><code>systemctl enable X</code> / <code>disable X</code></td></tr>
+<tr><td>Şu an başlat / durdur</td><td><code>systemctl start X</code> / <code>stop X</code></td></tr>
+<tr><td>Bütün kullanıcılar / gruplar</td><td><code>compgen -u</code> / <code>compgen -g</code></td></tr>
+<tr><td>Tek kullanıcı / grup kaydı</td><td><code>getent passwd ad</code> / <code>getent group ad</code></td></tr>
+<tr><td>Grup oluştur / gruba ekle</td><td><code>sudo addgroup g</code> / <code>sudo adduser kullanıcı g</code></td></tr>
+<tr><td>Dosyanın başı / sonu</td><td><code>head -n 2</code> / <code>tail -n 5</code></td></tr>
+<tr><td>Dosya mı klasör mü</td><td>dosya <code>cat</code>, klasör <code>ls</code></td></tr>
+<tr><td>Bir komutun alt komutları</td><td>komutu tek başına yaz (<code>sudo ufw</code>) ya da <code>komut --help</code></td></tr>
+<tr><td>SSH'tan çık</td><td><code>exit</code> veya Ctrl+D</td></tr>
+<tr><td>nano</td><td>Ctrl+O kaydet (Enter), Ctrl+X çık</td></tr>
+</table>
+</div></div>
+</div>
+<script>
+(function(){
+  var b=document.getElementById('mode');
+  b.addEventListener('click',function(){
+    var on=document.body.classList.toggle('hide');
+    b.classList.toggle('on',on);
+    b.textContent=on?'Cevapları göster':'Cevapları gizle (test modu)';
+    [].forEach.call(document.querySelectorAll('.card.show'),function(c){c.classList.remove('show');});
+  });
+  [].forEach.call(document.querySelectorAll('.card .q'),function(q){
+    q.addEventListener('click',function(){
+      if(document.body.classList.contains('hide')) q.parentNode.classList.toggle('show');
+    });
+  });
+})();
+</script>
+</body>
+</html>

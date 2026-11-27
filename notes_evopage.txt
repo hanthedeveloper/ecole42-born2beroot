@@ -1,3 +1,4 @@
+last edit : 27112026
 A simple "diff" should allow you to compare the two signatures.
 1. Hash'i terminalden alıp bir dosyaya yaz:
 bash
@@ -459,21 +460,3 @@ Uzaktan yönetim: Fiziksel erişim gerekmez. Gerçek sunucular genelde başka bi
 yönetmenin yolu SSH'tır.
 Veri bütünlüğü: Taşınan verinin yolda değiştirilmediği doğrulanır.
 Ek yetenekler: scp ve sftp ile güvenli dosya aktarımı, port yönlendirme (tünel) yapabilirsin.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

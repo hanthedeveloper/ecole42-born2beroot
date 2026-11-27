@@ -1,3 +1,4 @@
+last edit : 27112026
 2. ISO image ne demek, neden var?
 ISO, bir kurulum diskinin (CD/DVD) dosya halidir. Gerçek bir bilgisayara Windows ya da Linux kurarken
 USB bellekten açarsın. Sanal makinede USB yok, o yüzden bu dosyayı sanal CD sürücüsüne takılmış gibi

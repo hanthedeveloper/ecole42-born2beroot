@@ -1,3 +1,4 @@
+last edit : 27112026
 systemctl
 system control kısaltması. Debian’da servisleri yöneten araç. Bunun arkasındaki sisteme systemd denir.
 su
@@ -61,28 +62,13 @@ Recv-Q / Send-Q: 0 / 0: Bekleyen veri yok, bağlantı sakin.
 Local Address:Port: 10.0.2.15:4242: Bağlantının VM tarafı. VM'in IP'si ve SSH portu.
 Peer Address:Port: 10.0.2.2:44308: Bağlanan taraf. 10.0.2.2 VirtualBox NAT'te host makinenin (kendi bilgisayarının) VM'den görünen adresi. 44308 ise host tarafının rastgele seçtiği geçici port.
 
-Socket, iki programın (aynı makinede ya da ağ üzerinde) birbiriyle konuşabilmesi için işletim sisteminin sunduğu iletişim uç noktasıdır. Telefon prizi gibi düşünebilirsin: bir program prize takılır, öbür program da başka bir prize, aralarında veri akar.
+Socket, iki programın (aynı makinede ya da ağ üzerinde) birbiriyle konuşabilmesi için işletim
+sisteminin sunduğu iletişim uç noktasıdır.
 
-Ağ soketi nasıl tanımlanır?
-
-Bir bağlantı şu dörtlüyle belirlenir:
-
-(kaynak IP, kaynak port, hedef IP, hedef port)
-
-
-
-
-
-
-
-
-
-
-
+_______________________________________________________________________________________________
 
 var olan kullanıcıyı sudo grubuna ekle
 usermod -aG sudo haincel
-
 -a (append): Ekle, mevcut grupları silme.
 -G (groups): Hangi gruplara ekleneceğini belirt.
 -g (küçük): kullanıcının birincil (primary) grubunu değiştirir.
@@ -145,7 +131,6 @@ haincel@haincel42:~$ ls -ld test3
 drwxr-xr-x 2 haincel haincel 4096 Kas 25 21:19 test3
 haincel@haincel42:~$
 
-
 sudo chown root:gizli /srv/gizli_klasor
 change owner
 sudo chmod 770 /srv/gizli_klasor 
@@ -162,28 +147,25 @@ visudo dosyayı kaydederken sözdizimini kontrol eder. Hata varsa "What now?" di
 izin vermez. Çünkü sudoers bozulursa sudo çalışmaz, root'a erişimin kalmayabilir. Aynı anda iki kişinin dosyayı
 düzenlemesini de kilitleyerek engeller.
 
-once apt install openssh-server
-nano /etc/ssh_sshd_config -> permitrootlogin no
+___________________________________________________________________________________________________
 
 journalctl -u ssh -f komutunu parçalarına ayıralım.
-
 journalctl
 Debian’da (systemd kullanan sistemlerde) tüm servislerin ve sistemin loglarını (kayıtlarını)
 okumaya yarayan komuttur. Sistem ne olup bittiğini sürekli bir günlüğe yazar, journalctl o günlüğü okur.
 Tek başına yazarsan her şeyi gösterir, çok uzun olur. Bu yüzden filtre kullanırız.
-
 -u ssh
 -u = unit (birim). systemd’de her servis bir “unit”tir. -u ssh demek: “sadece ssh servisinin loglarını
 göster.” Başka servislerin (cron, network vb.) satırları gelmez, sadece sshd’nin yazdıkları gelir: kim
 bağlandı, parola yanlış mı girildi, servis ne zaman başladı/durdu gibi.
-
 -f
 -f = follow (takip et). Normalde komut mevcut logları basıp biter.
 -f ile bittikten sonra komut kapanmaz, yeni log satırı geldikçe canlı olarak ekrana yazar.
 Tıpkı canlı yayın izler gibi. Windows’taki “dosyaya eklenenleri anlık göster” mantığıdır.
-
 Birlikte ne yapıyor?
 “SSH servisinin loglarını göster ve yeni bir şey olursa anında ekrana yaz.”
+
+___________________________________________________________________________________________________
 
 apt install ufw
 ufw allow 4242
@@ -196,57 +178,44 @@ IPV6=yes
 root@haincel42:~# 
 
 IP, “Internet Protocol” demek: ağdaki her cihazın adresi. IPv4 ve IPv6 bu adreslerin iki farklı
-sürümü. (Yazılışı IPv, “ivp” değil.)
-
+sürümü.
 IPv4
 Dört sayıdan oluşur, noktayla ayrılır:
-
 192.168.1.10
 10.0.2.15
 127.0.0.1
-Her sayı 0-255 arasındadır. Toplam yaklaşık 4,3 milyar adres çıkar. İnternet büyüyünce bu adresler yetmemeye başladı.
-
+Her sayı 0-255 arasındadır. Toplam yaklaşık 4,3 milyar adres çıkar.
+İnternet büyüyünce bu adresler yetmemeye başladı.
 IPv6
-Bu sorunu çözmek için geliştirildi. Adresler hex (16'lık) sayılarla yazılır, iki nokta ile ayrılır:
-
+Bu sorunu çözmek için geliştirildi. Adresler hex (16'lık) sayılarla yazılır, iki nokta ile
+ayrılır:
 2001:0db8:85a3:0000:0000:8a2e:0370:7334
 ::1
 fe80::2d:ee93:d674:4114
-Adres sayısı pratikte tükenmez bir miktardır (yaklaşık 340 undesilyon). Kısaltma olarak ardışık sıfırlar :: ile yazılır.
+Adres sayısı pratikte tükenmez bir miktardır (yaklaşık 340 undesilyon).
+Kısaltma olarak ardışık sıfırlar :: ile yazılır.
 
-
-
-
-Bu komut "son şifre değiştirme tarihi"ni 0 yapar. Sistem şifreyi süresi dolmuş sayar. Kullanıcı bir sonraki girişinde şöyle bir şey görür:
-
-You are required to change your password immediately (administrator enforced).
-Current password:
-New password:
-Retype new password:
-
-Önce mevcut şifresini girer, sonra yeni şifreyi kendisi belirler. Yeni şifre senin koyduğun kurallara (uzunluk, karmaşıklık vb.) uymak zorundadır.
-
-Aynı işi yapan alternatif:
+___________________________________________________________________________________________________
 
 bash
 sudo passwd -e kullanici
-
--e (expire) şifreyi hemen geçersiz kılar. chage -d 0 ile aynı sonucu verir.
-
-
-
+-e (expire) şifreyi hemen geçersiz kılar.
 chage -l root
+
+___________________________________________________________________________________________________
+
 PAM nedir?
 PAM, Pluggable Authentication Modules (Takılabilir Kimlik Doğrulama Modülleri) demektir.
-
 Problem
-Linux’ta kimlik doğrulama gerektiren birçok program var: login, ssh, sudo, su, passwd... Eskiden her program şifre kontrolünü kendi içinde yapardı. Yeni bir doğrulama yöntemi eklemek (örneğin parmak izi, 2 faktörlü doğrulama) için her programı tek tek değiştirip yeniden derlemek gerekirdi.
-
+Linux’ta kimlik doğrulama gerektiren birçok program var: login, ssh, sudo, su, passwd...
+Eskiden her program şifre kontrolünü kendi içinde yapardı. Yeni bir doğrulama yöntemi eklemek
+(örneğin parmak izi, 2 faktörlü doğrulama) için her programı tek tek değiştirip yeniden derlemek
+gerekirdi.
 Çözüm: PAM
-Tüm bu programlar kimlik doğrulamayı ortak bir katmana (PAM) devreder. Programlar “bu kullanıcı doğru mu?” diye PAM’a sorar, PAM de yapılandırma dosyalarında yazan modülleri sırayla çalıştırır ve sonucu döner.
+Tüm bu programlar kimlik doğrulamayı ortak bir katmana (PAM) devreder. Programlar “bu kullanıcı
+doğru mu?” diye PAM’a sorar, PAM de yapılandırma dosyalarında yazan modülleri sırayla çalıştırır
+ve sonucu döner.
 
-￼
-
 ssh / sudo / login / passwd
           |
           v
@@ -254,7 +223,9 @@ ssh / sudo / login / passwd
           |
           v
    modüller (pam_unix, pam_pwquality, ...)
-Avantajı: Politikayı tek bir yerde değiştirirsin, onu kullanan tüm programlar etkilenir. Modülleri ekleyip çıkarmak programlara dokunmayı gerektirmez.
+
+Avantajı: Politikayı tek bir yerde değiştirirsin, onu kullanan tüm programlar etkilenir.
+Modülleri ekleyip çıkarmak programlara dokunmayı gerektirmez.
 
 PAM’in dört yönetim grubu
 Grup	Görevi
@@ -265,29 +236,23 @@ password	Şifre değiştirme işlemi ve şifre kuralları
 Bizim satırımız password grubunda, çünkü şifre değiştirilirken çalışıyor.
 
 pam_pwquality ne yapar?
-pam_pwquality, PAM’in password grubunda çalışan bir modüldür. Birisi passwd ile yeni şifre belirlediğinde, şifre kaydedilmeden önce devreye girer ve kalitesini ölçer: uzunluk, karakter çeşitliliği, tekrar, kullanıcı adı içerme, eski şifreye benzerlik. Kurallardan biri bile sağlanmazsa şifreyi reddeder ve retry hakkı kadar tekrar sordurur.
-
+pam_pwquality, PAM’in password grubunda çalışan bir modüldür. Birisi passwd ile yeni şifre
+belirlediğinde, şifre kaydedilmeden önce devreye girer ve kalitesini ölçer: uzunluk, karakter
+çeşitliliği, tekrar, kullanıcı adı içerme, eski şifreye benzerlik. Kurallardan biri bile
+sağlanmazsa şifreyi reddeder ve retry hakkı kadar tekrar sordurur.
 Bir de sözlük kontrolü yapar: şifre yaygın bir kelimeyse (password, qwerty) onu da reddedebilir.
 
-Adım 1: İskeleti kur
-￼
-
+___________________________________________________________________________________________________
+
 nano /usr/local/bin/monitoring.sh
 chmod +x /usr/local/bin/monitoring.sh
 
-root@haincel42:~# uname -a
-Linux haincel42 6.12.118+deb13-amd64 #1 SMP PREEMPT_DYNAMIC Debian 6.12.118-1 (2026-11-20) x86_64 GNU/Linux
-root@haincel42:~# 
-if [ $lvm -gt 0 ]; then
-    lvm_status="yes"
-else
-    lvm_status="no"
-fi
--gt “greater than” (büyüktür) demek.
+____________________________________________________________________________________________________
 
 awk nedir?
-awk, metin çıktısını satır satır okuyup sütunlara bölen ve istersen üzerinde hesap yapabilen küçük bir programlama aracıdır. Linux komutlarının çıktısı çoğunlukla “tablo gibi” metindir. awk bu tablodan istediğin sütunu çekmeni sağlar.
-
+awk, metin çıktısını satır satır okuyup sütunlara bölen ve istersen üzerinde hesap yapabilen
+küçük bir programlama aracıdır. Linux komutlarının çıktısı çoğunlukla “tablo gibi” metindir.
+awk bu tablodan istediğin sütunu çekmeni sağlar.
 Temel mantık
 awk her satırı boşluklardan keserek parçalara ayırır ve bunlara isim verir:
 
@@ -295,24 +260,21 @@ $1 → 1. sütun
 $2 → 2. sütun
 $3 → 3. sütun
 $0 → satırın tamamı
-Yazım şekli:
 
-￼
-
 awk '/desen/ {yapılacak iş}'
 /desen/: “bu kelimeyi içeren satırlarda çalış”
 { ... }: o satırda ne yapılacağı
 Senin kullandığın satır
-￼
-
+
 bash
 free -m | awk '/Mem:/ {print $3}'
 
-Neden shell’de değil de awk’ta hesaplıyoruz? Çünkü bash ondalıklı sayı bölmeyi bilmez (280/987 bash’te 0 verir, tam sayı bölmesi yapar). awk ondalıklı hesabı yapabilir.
+Neden shell’de değil de awk’ta hesaplıyoruz? Çünkü bash ondalıklı sayı bölmeyi bilmez
+(280/987 bash’te 0 verir, tam sayı bölmesi yapar). awk ondalıklı hesabı yapabilir.
 
 cpuinfo proc/
-Her mantıksal işlemci (vCPU) için ayrı bir blok vardır. Bloklar boş satırla ayrılır. Önemli alanlar:
-
+Her mantıksal işlemci (vCPU) için ayrı bir blok vardır. Bloklar boş satırla ayrılır.
+Önemli alanlar:
 Alan	Anlamı
 processor	İşlemcinin sıra numarası (0, 1, 2...)
 vendor_id	Üretici (GenuineIntel, AuthenticAMD)
@@ -325,96 +287,66 @@ core id	Fiziksel işlemci içindeki çekirdek numarası
 cpu cores	Fiziksel işlemcideki çekirdek sayısı
 flags	CPU’nun desteklediği özellikler (uzun bir liste)
 
-
 lscpu:
 Kernel (çekirdek) nedir?
-Kernel, işletim sisteminin en alttaki, donanımla doğrudan konuşan çekirdek parçasıdır. Programlar (tarayıcı, bash, ssh) donanıma (CPU, RAM, disk, ağ kartı) doğrudan dokunamaz. Hepsi kernel’den ister, kernel yapar.
+Kernel, işletim sisteminin en alttaki, donanımla doğrudan konuşan çekirdek parçasıdır.
+Programlar (tarayıcı, bash, ssh) donanıma (CPU, RAM, disk, ağ kartı) doğrudan dokunamaz.
+Hepsi kernel’den ister, kernel yapar.
 
-￼
-
 Programlar (bash, ssh, monitoring.sh)
         |
      KERNEL      <- CPU, RAM, disk, ağ yönetimi burada
         |
 Donanım (CPU, RAM, disk, ağ kartı)
-Kernel’in işleri: hangi program ne zaman CPU kullanacak, RAM kime ne kadar verilecek, dosyalar diskte nasıl durur, ağ paketleri nereye gidecek. Senin ekranında görünen Linux haincel42 6.12.118+deb13-amd64 satırındaki 6.12.118, kernel’in sürümü.
-
-Kernel sistemde olup biten her şeyi bilir: kaç CPU var, RAM’in ne kadarı dolu, hangi süreçler çalışıyor. Sorun şu: bu bilgiyi programlara nasıl sunar?
+Kernel’in işleri: hangi program ne zaman CPU kullanacak, RAM kime ne kadar verilecek, dosyalar
+diskte nasıl durur, ağ paketleri nereye gidecek. Senin ekranında görünen
+Linux haincel42 6.12.118+deb13-amd64 satırındaki 6.12.118, kernel’in sürümü.
+Kernel sistemde olup biten her şeyi bilir: kaç CPU var, RAM’in ne kadarı dolu, hangi süreçler
+çalışıyor. Sorun şu: bu bilgiyi programlara nasıl sunar?
 
 /proc neden var?
-Kernel’in elindeki bilgiyi programlara göstermesi için bir yol lazım. Linux’un felsefesi şu: “Her şey bir dosyadır.” Yani özel bir komut ya da özel bir iletişim yöntemi icat etmek yerine, bilgiyi dosya gibi sunar. Böylece cat, grep, awk gibi zaten bildiğin araçlarla okuyabilirsin.
-
+Kernel’in elindeki bilgiyi programlara göstermesi için bir yol lazım. Linux’un felsefesi şu:
+“Her şey bir dosyadır.” Yani özel bir komut ya da özel bir iletişim yöntemi icat etmek yerine,
+bilgiyi dosya gibi sunar. Böylece cat, grep, awk gibi zaten bildiğin araçlarla okuyabilirsin.
 /proc (process information, süreç bilgisi) bu amaçla var. İçinde şunlar bulunur:
-
 Dosya	İçerik
 /proc/cpuinfo	CPU bilgisi
 /proc/meminfo	RAM bilgisi
 /proc/uptime	Sistem ne kadardır açık
 /proc/1234/	PID’si 1234 olan sürecin bilgileri
-free komutu aslında /proc/meminfo dosyasını okuyup düzenli bir tabloya çevirir. Yani senin kullandığın birçok komut arka planda /proc’a bakıyor.
-
+free komutu aslında /proc/meminfo dosyasını okuyup düzenli bir tabloya çevirir.
+Yani senin kullandığın birçok komut arka planda /proc’a bakıyor.
 Neden “sanal” dosya? Neden diskte durmaz?
 Çünkü bu bilgiler sürekli değişir ve zaten kernel’in bellekte tuttuğu bilgilerdir.
-
 RAM’in ne kadar dolu olduğu her saniye değişir.
 CPU’nun anlık MHz’i değişir.
 Çalışan süreçler açılıp kapanır.
-Bunları diske yazıp güncel tutmak hem anlamsız hem yavaş olurdu. Üstelik sistem kapanınca bu bilgilerin hiçbir değeri kalmaz.
-
+Bunları diske yazıp güncel tutmak hem anlamsız hem yavaş olurdu. Üstelik sistem kapanınca bu
+bilgilerin hiçbir değeri kalmaz.
 Bunu sen kendin kanıtlayabilirsin:
-
 ls -l /proc/cpuinfo
-Boyutu 0 görürsün. Dosya boş görünür ama cat yapınca dolu gelir. Çünkü içerik diskte değil, okuma anında üretiliyor.
-
+Boyutu 0 görürsün. Dosya boş görünür ama cat yapınca dolu gelir. Çünkü içerik diskte değil,
+okuma anında üretiliyor.
 Neden kernel “o anda” üretiyor?
 Sen cat /proc/cpuinfo yazdığında şunlar olur:
-
 cat, dosyayı açıp okumak ister, kernel’e “bu dosyanın içeriğini ver” der.
-Kernel normalde diskten okurdu. Ama /proc bir diske bağlı değil, kernel’in kendi kodu burayı yönetiyor.
+Kernel normalde diskten okurdu. Ama /proc bir diske bağlı değil, kernel’in kendi kodu burayıyönetiyor.
 Kernel o anda donanımdan ve kendi bellek kayıtlarından bilgiyi toplar, metne çevirir ve cat’e verir.
 Bir saniye sonra tekrar cat yaparsan güncel bilgi gelir.
-Yani /proc bir pencere gibidir: arkasında depolanmış bir dosya yok, kernel sana o anda baktığı manzarayı gösteriyor.
+Yani /proc bir pencere gibidir: arkasında depolanmış bir dosya yok, kernel sana o anda baktığımanzarayı gösteriyor.
 Aynı mantıkla free her çalıştığında güncel değeri verir.
-
-lscpu nedir?
-lscpu (list CPU) CPU bilgisini okunaklı bir özet olarak veren bir komuttur. Arka planda /proc/cpuinfo ve benzer kaynakları okuyup düzenler.
-
-Dene:
-
-￼
-
-lscpu
-Şunlara benzer satırlar göreceksin:
-
-￼
-
-Architecture:        x86_64
-CPU(s):              1
-Socket(s):           1
-Core(s) per socket:  1
-Thread(s) per core:  1
-Model name:          Intel(R) Core(TM) ...
-CPU(s) → mantıksal işlemci sayısı (vCPU)
-Socket(s) → fiziksel işlemci (soket) sayısı
-cpuinfo ham ve uzun, lscpu özet. Fiziksel CPU sayısı için physical id bazen VM’de gelmediğinden lscpu’daki Socket(s) satırı işini görebilir. Bu satırı grep ve awk ile çekebilirsin.
-
-Özet
-Kernel: donanımı yöneten çekirdek.
-/proc: kernel’in bilgiyi dosya gibi sunduğu sanal klasör.
-Sanal: diskte değil, okuma anında kernel tarafından üretiliyor.
-lscpu: aynı bilgiyi düzenli gösteren komut.
-
 
 Fiziksel CPU ve vCPU nedir?
 Fiziksel CPU (soket)
-Anakartın üzerindeki gerçek işlemci çipi. Bir bilgisayarda genelde 1 tane olur, sunucularda 2 veya 4 olabilir. Bir çipin içinde birden fazla çekirdek (core) bulunabilir.
-
+Anakartın üzerindeki gerçek işlemci çipi. Bir bilgisayarda genelde 1 tane olur, sunucularda
+2 veya 4 olabilir. Bir çipin içinde birden fazla çekirdek (core) bulunabilir.
 vCPU (sanal / mantıksal işlemci)
-İşletim sisteminin kullanabildiği işlemci sayısı. Kernel her çekirdeği (ya da hyper-threading varsa her thread’i) ayrı bir işlemci olarak görür. VM’de VirtualBox’ın VM’e verdiği işlemci sayısı budur.
+İşletim sisteminin kullanabildiği işlemci sayısı. Kernel her çekirdeği (ya da hyper-threading
+varsa her thread’i) ayrı bir işlemci olarak görür. VM’de VirtualBox’ın VM’e verdiği işlemci sayısı
+budur.
 
-Benzetme: Fiziksel CPU bir fabrika binası, çekirdekler içindeki işçiler, vCPU da işletim sisteminin saydığı “aynı anda çalışabilen iş kolu” sayısı.
-
-Senin VM’inde büyük ihtimalle: 1 fiziksel CPU, 1 vCPU (VirtualBox’ta VM’e kaç işlemci verdiğine bağlı, 2 verdiysen vCPU 2 çıkar).
+Senin VM’inde büyük ihtimalle: 1 fiziksel CPU, 1 vCPU (VirtualBox’ta VM’e kaç işlemci verdiğine
+bağlı, 2 verdiysen vCPU 2 çıkar).
 
 #!/bin/bash
 
@@ -463,64 +395,63 @@ wall << EOF
 	#Sudo: $sudo_cmd cmd
 EOF
 
-
-Anlaman gereken yerler
-export LC_ALL=C: Sistemin Türkçe olması yüzünden lscpu, who gibi komutların etiketleri değişir. Bu satır hepsini İngilizce yapar.
-Fiziksel CPU satırı: physical id yoksa sonuç 0 çıkar. Bu durumda lscpu’daki Socket(s) değerine düşüyoruz. [ ... ] &&
+export LC_ALL=C: Sistemin Türkçe olması yüzünden lscpu, who gibi komutların etiketleri değişir.
+Bu satır hepsini İngilizce yapar.
+Fiziksel CPU satırı: physical id yoksa sonuç 0 çıkar. Bu durumda lscpu’daki Socket(s) değerine
+düşüyoruz. [ ... ] &&
 komut ifadesi “koşul doğruysa komutu çalıştır” demek.
-Disk: Sadece /dev/ ile başlayan satırları (gerçek bölümler) topluyoruz. tmpfs gibi sanal olanları saymıyoruz. u+=$3 her satırı toplar,
+Disk: Sadece /dev/ ile başlayan satırları (gerçek bölümler) topluyoruz. tmpfs gibi sanal olanları
+saymıyoruz. u+=$3 her satırı toplar,
 END satırlar bitince çalışır.
-CPU yükü: vmstat 1 2 iki ölçüm alır. İlki açılıştan beri ortalamadır, ikincisi son 1 saniyedir, o yüzden tail -1. $15 boşta (idle) yüzdesidir,
+CPU yükü: vmstat 1 2 iki ölçüm alır. İlki açılıştan beri ortalamadır, ikincisi son 1 saniyedir, o
+yüzden tail -1. $15 boşta (idle) yüzdesidir,
 100-idle kullanım olur.
 uptime -s: Son açılış zamanını 2026-11-25 10:00:12 biçiminde verir, cut saniyeyi atar.
 ss -Htn state established: -H başlık satırını gizler, böylece wc -l doğru sayar.
-Sudo sayısı: journalctl içindeki COMMAND satırlarını sayar. Bazı kurulumlarda sudo’yu /var/log/sudo/ altına yazdırdığın için çalışmayabilir,
+Sudo sayısı: journalctl içindeki COMMAND satırlarını sayar. Bazı kurulumlarda sudo’yu
+/var/log/sudo/ altına yazdırdığın için çalışmayabilir,
 0 çıkarsa söyle, o dosyaya göre uyarlarız.
-wall << EOF: İki EOF arasındaki metni wall’a verir, o da tüm terminallere basar. Satır başlarındaki boşluk Tab olmalı. Eğer wall banner’ı (başlık)
+wall << EOF: İki EOF arasındaki metni wall’a verir, o da tüm terminallere basar. Satır başlarındaki
+boşluk Tab olmalı. Eğer wall banner’ı (başlık)
 istemiyorsan wall -n kullanabilirsin.
 
-wall (write all), o an açık olan bütün terminallere aynı mesajı yollayan bir komuttur. Bir sunucuda “5 dakika sonra kapanacak” diye herkese duyuru yapmak için kullanılır.
+wall (write all), o an açık olan bütün terminallere aynı mesajı yollayan bir komuttur.
+Bir sunucuda “5 dakika sonra kapanacak” diye herkese duyuru yapmak için kullanılır.
 
+___________________________________________________________________________________________________
 
-
-
-tty (tanım)
-
-tty, kernel'in sağladığı bir terminal aygıtıdır: bir yandan klavyeden girdi alır, öbür yandan ekrana çıktı verir, ortada da shell ile konuşur.
+tty, kernel'in sağladığı bir terminal aygıtıdır: bir yandan klavyeden girdi alır, öbür yandan
+ekrana çıktı verir, ortada da shell ile konuşur.
 pts (tanım)
-
-pts = pseudo terminal slave. Fiziksel bir ekran/klavye yokken, bir program terminal varmış gibi davransın diye yazılımla taklit edilen terminaldir.
-
-Bir pty çifti olarak çalışır:
-
+pts = pseudo terminal slave. Fiziksel bir ekran/klavye yokken, bir program terminal varmış gibi
+davransın diye yazılımla taklit edilen terminaldir.
 master tarafı: SSH sunucusu (sshd) gibi bir program tutar. Ağdan gelen veriyi buraya yazar.
 slave tarafı: /dev/pts/N olarak görünür. Shell buna bağlanır ve sanki gerçek bir terminalmiş gibi kullanır.
-WSL'de de aynı mantık: pts çıktısı normal, çünkü WSL'de gerçek bir ekran/klavye konsolu (tty1) yok. Windows Terminal (ya da Ubuntu uygulaması) bir sözde terminal açıyor, Ubuntu'daki bash de ona bağlanıyor. Yani akış SSH'takine benziyor:
-
-Windows Terminal penceresi → WSL → /dev/pts/0 → bash
-
-Bu yüzden tty yazınca /dev/pts/0 görürsün. Born2beRoot'ta farklı olan şu: orada VirtualBox penceresinde giriş yaptığında gerçek sanal konsola düşersin (/dev/tty1), SSH ile girince de /dev/pts/0 olur. WSL'de ise her terminal sekmesi pts'tir (ikinci sekme pts/1 olabilir).
+WSL'de de aynı mantık: pts çıktısı normal, çünkü WSL'de gerçek bir ekran/klavye konsolu (tty1) yok.
+Windows Terminal (ya da Ubuntu uygulaması) bir sözde terminal açıyor, Ubuntu'daki bash de ona
+bağlanıyor. Yani akış SSH'takine benziyor:
+Bu yüzden tty yazınca /dev/pts/0 görürsün. Born2beRoot'ta farklı olan şu: orada VirtualBox
+penceresinde giriş yaptığında gerçek sanal konsola düşersin (/dev/tty1), SSH ile girince de
+/dev/pts/0 olur.
 
 curl nedir?
 
-curl (Client URL), komut satırından bir adrese istek gönderip cevabı terminale yazdıran araçtır. Tarayıcının yaptığı işi (bir web sunucusuna "bana şu sayfayı ver" demek) tarayıcı olmadan, terminalde yapar.
-
-bash
-curl localhost:8080
-
-Bu komut "bu makinenin 8080 portundaki sunucuya HTTP isteği gönder, gelen cevabı ekrana bas" demektir. Cevap normalde bir web sayfasının HTML kodudur.
-
-Değeri:
-
-Test: Bir servis gerçekten cevap veriyor mu, kolayca görürsün. Port açık olsa bile servis çalışıyor mu sorusunu cevaplar.
-Tarayıcı gerekmez: Born2beRoot'ta grafik arayüz yok, bu yüzden web sunucusunu test etmenin yolu budur.
-Dosya indirme, API çağırma gibi işlerde de kullanılır.
-
+curl (Client URL), komut satırından bir adrese istek gönderip cevabı terminale yazdıran araçtır.
+Tarayıcının yaptığı işi (bir web sunucusuna "bana şu sayfayı ver" demek) tarayıcı olmadan,
+terminalde yapar.
 
 python3 -m http.server 8080 ne yapıyor?
-
-Parça parça:
-
 python3: Python yorumlayıcısını çalıştırır.
--m http.server: -m "bir modülü program gibi çalıştır" demek. http.server, Python'un içinde hazır gelen küçük bir web sunucusu modülüdür. Kurulum gerekmez.
+-m http.server: -m "bir modülü program gibi çalıştır" demek. http.server,
+Python'un içinde hazır gelen küçük bir web sunucusu modülüdür. Kurulum gerekmez.
 8080: Sunucunun dinleyeceği port numarası. Yazmazsan varsayılan 8000 olur.
+
+curl localhost:8080
+Bu komut "bu makinenin 8080 portundaki sunucuya HTTP isteği gönder, gelen cevabı ekrana bas"
+demektir. Cevap normalde bir web sayfasının HTML kodudur.
+Değeri:
+Test: Bir servis gerçekten cevap veriyor mu, kolayca görürsün. Port açık olsa bile servis çalışıyor
+mu sorusunu cevaplar.
+Tarayıcı gerekmez: Born2beRoot'ta grafik arayüz yok, bu yüzden web sunucusunu test etmenin yolu
+budur.
+Dosya indirme, API çağırma gibi işlerde de kullanılır.
